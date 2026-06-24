@@ -295,6 +295,9 @@ export async function onRequest(context) {
 
   // 3. Fallback to static assets first (like offers/index.html, cart/index.html, image.png)
   const staticResponse = await context.next();
+  if (staticResponse.status >= 300 && staticResponse.status < 400) {
+    return staticResponse;
+  }
   if (staticResponse.status === 200 || staticResponse.status === 304) {
     const contentType = staticResponse.headers.get('Content-Type') || '';
     if (contentType.includes('text/html')) {
