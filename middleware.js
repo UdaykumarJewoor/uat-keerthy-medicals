@@ -47,7 +47,7 @@ function modifyHtml(html, urlStr, origin) {
   modified = modified.replace(/<script id="__LOADABLE_REQUIRED_CHUNKS__"/g, '<script id="__LOADABLE_REQUIRED_CHUNKS__" type="text/blocked"');
   modified = modified.replace(/<script id="__LOADABLE_REQUIRED_CHUNKS___ext"/g, '<script id="__LOADABLE_REQUIRED_CHUNKS___ext" type="text/blocked"');
 
-  // Inject opacity override styles specifically to bypass animation opacity 0
+  // Inject opacity override styles specifically to bypass animation opacity 0 and pre-hydration hidden states
   const overrideStyles = `
   <style>
     [style*="opacity:0"],
@@ -55,7 +55,10 @@ function modifyHtml(html, urlStr, origin) {
     [style*="opacity:0;"],
     [style*="opacity: 0;"],
     .opacity-none,
-    .opacity-0 {
+    .opacity-0,
+    .flash-style,
+    [class*="flash-style"],
+    [class*="FlashStyle"] {
       opacity: 1 !important;
       transform: none !important;
       visibility: visible !important;
