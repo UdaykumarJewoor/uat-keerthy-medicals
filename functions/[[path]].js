@@ -39,47 +39,49 @@ function modifyHtml(html, urlStr, origin) {
   modified = modified.replace(/https?:\/\/www\.1mg\.com/g, origin);
   modified = modified.replace(/https?:\/\/1mg\.com/g, origin);
 
-  // If this is the ayurveda page, block the React scripts to prevent hydration errors
-  if (urlStr.includes('/ayurveda') || urlStr.includes('/ayurveda/')) {
+  // Block the React scripts on static override/proxy pages to prevent hydration errors or client-side routing to 404
+  if (
+    urlStr.includes('/ayurveda') || urlStr.includes('/ayurveda/') ||
+    urlStr.includes('/corporates') || urlStr.includes('/corporates/') ||
+    urlStr.includes('/partnerships') || urlStr.includes('/partnerships/')
+  ) {
     modified = modified.replace(/<script async data-chunk=/g, '<script type="text/blocked" async data-chunk=');
     modified = modified.replace(/<script id="__LOADABLE_REQUIRED_CHUNKS__"/g, '<script id="__LOADABLE_REQUIRED_CHUNKS__" type="text/blocked"');
     modified = modified.replace(/<script id="__LOADABLE_REQUIRED_CHUNKS___ext"/g, '<script id="__LOADABLE_REQUIRED_CHUNKS___ext" type="text/blocked"');
 
-    // Inject client-side image hydration script
+    // Inject recursive client-side image hydration script
     const imageHydrationScript = `
     <script>
       (function() {
         function hydrateImages() {
           try {
-            const initialData = window.__ROUTER_INITIAL_DATA__;
-            if (!initialData) return;
-            
             const slugMap = {};
-            Object.keys(initialData).forEach(routeKey => {
-              const routeData = initialData[routeKey]?.data;
-              if (!routeData) return;
-              const payload = routeData.payload;
-              const widgets = Array.isArray(payload) ? payload : (payload?.data || routeData.data);
-              if (Array.isArray(widgets)) {
-                widgets.forEach(widget => {
-                  const products = widget.value?.data || widget.data;
-                  if (Array.isArray(products)) {
-                    products.forEach(product => {
-                      if (product.slug && product.image) {
-                        slugMap[product.slug] = product.image;
-                        const cleanSlug = product.slug.replace(/\\\\/$/, '');
-                        slugMap[cleanSlug] = product.image;
-                      }
-                    });
-                  }
-                });
+            function traverse(obj) {
+              if (!obj || typeof obj !== 'object') return;
+              const link = obj.slug || obj.url || obj.href || obj.link;
+              const img = obj.image || obj.imageUrl || obj.img || obj.icon;
+              if (typeof link === 'string' && typeof img === 'string') {
+                slugMap[link] = img;
+                const cleanLink = link.replace(/[\\\\/]+$/, '');
+                slugMap[cleanLink] = img;
               }
-            });
+              for (let key in obj) {
+                if (Object.prototype.hasOwnProperty.call(obj, key)) {
+                  traverse(obj[key]);
+                }
+              }
+            }
 
-            const links = document.querySelectorAll('a[href*="/ayurveda/"]');
+            // Parse all initial state sources
+            if (window.__INITIAL_STATE__) traverse(window.__INITIAL_STATE__);
+            if (window.__ROUTER_INITIAL_DATA__) traverse(window.__ROUTER_INITIAL_DATA__);
+
+            // Find all anchor links and hydrate child images if matching slug found
+            const links = document.querySelectorAll('a');
             links.forEach(link => {
               const href = link.getAttribute('href');
-              const cleanHref = href ? href.replace(/\\\\/$/, '') : '';
+              if (!href) return;
+              const cleanHref = href.replace(/[\\\\/]+$/, '');
               const imageUrl = slugMap[href] || slugMap[cleanHref];
               if (imageUrl) {
                 const img = link.querySelector('img');
@@ -108,6 +110,7 @@ function modifyHtml(html, urlStr, origin) {
         }
         setTimeout(hydrateImages, 500);
         setTimeout(hydrateImages, 1500);
+        setInterval(hydrateImages, 2000);
       })();
     </script>
     `;
@@ -268,7 +271,6 @@ const STATIC_FILES = new Set([
 ]);
 
 const STATIC_FOLDERS = [
-  '/ayurveda',
   '/cancer-care',
   '/cart',
   '/corporates',
@@ -282,6 +284,16 @@ const STATIC_FOLDERS = [
 ];
 
 function isStaticAsset(path) {
+  // Prevent folder-level matching from hijacking API calls
+  if (
+    path.includes('/api/') || 
+    path.includes('/pwa-dweb-api/') || 
+    path.includes('/cdn-cgi/') || 
+    path.includes('/notifyvisitors_push/')
+  ) {
+    return false;
+  }
+
   if (STATIC_FILES.has(path)) return true;
   const segments = path.split('/').filter(Boolean);
   if (segments.length > 0) {
