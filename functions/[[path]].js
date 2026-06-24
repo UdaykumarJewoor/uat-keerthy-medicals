@@ -259,6 +259,40 @@ async function safeProxyFetch(targetUrl, request, host) {
   return fetch(targetUrl, fetchOptions);
 }
 
+const STATIC_FILES = new Set([
+  '/',
+  '/index.html',
+  '/1mg.html',
+  '/image.png',
+  '/favicon.ico',
+]);
+
+const STATIC_FOLDERS = [
+  '/ayurveda',
+  '/cancer-care',
+  '/cart',
+  '/corporates',
+  '/help',
+  '/labs',
+  '/login',
+  '/offers',
+  '/online-doctor-consultation',
+  '/partnerships',
+  '/subscription-plan',
+];
+
+function isStaticAsset(path) {
+  if (STATIC_FILES.has(path)) return true;
+  const segments = path.split('/').filter(Boolean);
+  if (segments.length > 0) {
+    const firstSegment = '/' + segments[0];
+    if (STATIC_FOLDERS.includes(firstSegment)) {
+      return true;
+    }
+  }
+  return false;
+}
+
 export async function onRequest(context) {
   const { request, env } = context;
   const url = new URL(request.url);
@@ -307,18 +341,20 @@ export async function onRequest(context) {
   }
 
   // 3. Fallback to static assets first (like offers/index.html, cart/index.html, image.png)
-  const staticResponse = await context.next();
-  if (staticResponse.status >= 300 && staticResponse.status < 400) {
-    return staticResponse;
-  }
-  if (staticResponse.status === 200 || staticResponse.status === 304) {
-    const contentType = staticResponse.headers.get('Content-Type') || '';
-    if (contentType.includes('text/html')) {
-      let html = await staticResponse.text();
-      html = modifyHtml(html, url.href, origin);
-      return new Response(html, { status: staticResponse.status, headers: staticResponse.headers });
+  if (isStaticAsset(path)) {
+    const staticResponse = await context.next();
+    if (staticResponse.status >= 300 && staticResponse.status < 400) {
+      return staticResponse;
     }
-    return staticResponse;
+    if (staticResponse.status === 200 || staticResponse.status === 304) {
+      const contentType = staticResponse.headers.get('Content-Type') || '';
+      if (contentType.includes('text/html')) {
+        let html = await staticResponse.text();
+        html = modifyHtml(html, url.href, origin);
+        return new Response(html, { status: staticResponse.status, headers: staticResponse.headers });
+      }
+      return staticResponse;
+    }
   }
 
   // 4. Otherwise, proxy page requests to www.1mg.com
