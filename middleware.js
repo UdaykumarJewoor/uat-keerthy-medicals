@@ -349,11 +349,6 @@ export async function middleware(request) {
     return NextResponse.next();
   }
 
-  // Redirect /cancer-care/home to /cancer-care/ to serve our local static clone
-  if (path === '/cancer-care/home' || path === '/cancer-care/home/') {
-    return NextResponse.redirect(new URL('/cancer-care/', request.url));
-  }
-
   // Skip Next.js internal requests, static assets, and favicon files
   if (
     path.startsWith('/_next/') ||
