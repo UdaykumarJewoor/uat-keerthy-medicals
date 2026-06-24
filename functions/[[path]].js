@@ -216,13 +216,43 @@ function modifyHtml(html, urlStr, origin) {
   return rebrand(modified);
 }
 
+async function safeProxyFetch(targetUrl, request, host) {
+  const headers = new Headers(request.headers);
+  
+  // Set Host header correctly
+  headers.set('Host', host);
+  
+  // Prevent Cloudflare loop blocks and clean up headers
+  headers.delete('cf-connecting-ip');
+  headers.delete('cf-ray');
+  headers.delete('cf-visitor');
+  headers.delete('cf-ipcountry');
+  headers.delete('x-forwarded-for');
+  headers.delete('x-forwarded-proto');
+  headers.delete('x-real-ip');
+  headers.set('accept-encoding', 'identity');
+
+  const fetchOptions = {
+    method: request.method,
+    headers: headers,
+    redirect: 'manual'
+  };
+
+  // Only include body if it is not GET or HEAD (throws TypeError in Workers otherwise)
+  if (request.method !== 'GET' && request.method !== 'HEAD') {
+    fetchOptions.body = await request.arrayBuffer();
+  }
+
+  return fetch(targetUrl, fetchOptions);
+}
+
 export async function onRequest(context) {
   const { request, env } = context;
   const url = new URL(request.url);
   const origin = url.origin;
   const path = url.pathname;
 
-  // 1. Intercept logo and favicon requests
+  // 1. Intercept logo and favicon requests and serve the local image.png asset
   if (
     path === '/image.png' || 
     path.includes('tata_1mg_logo') || 
@@ -230,7 +260,8 @@ export async function onRequest(context) {
     path.includes('favicon') ||
     path.includes('apple-touch-icon')
   ) {
-    const response = await context.next();
+    const assetUrl = `${origin}/image.png`;
+    const response = await env.ASSETS.fetch(new Request(assetUrl));
     if (response.status === 200) {
       const headers = new Headers(response.headers);
       headers.set('Content-Type', 'image/png');
@@ -244,15 +275,7 @@ export async function onRequest(context) {
     const assetPath = path.replace('/assets_proxy', '');
     const assetUrl = `https://${ASSETS_HOST}${assetPath}${url.search}`;
     
-    const headers = new Headers(request.headers);
-    headers.set('Host', ASSETS_HOST);
-    
-    const proxyResponse = await fetch(assetUrl, {
-      method: request.method,
-      headers: headers,
-      body: request.body
-    });
-
+    const proxyResponse = await safeProxyFetch(assetUrl, request, ASSETS_HOST);
     const responseHeaders = new Headers(proxyResponse.headers);
     responseHeaders.set('Access-Control-Allow-Origin', '*');
     
@@ -284,16 +307,7 @@ export async function onRequest(context) {
 
   // 4. Otherwise, proxy page requests to www.1mg.com
   const targetUrl = `https://${TARGET_HOST}${path}${url.search}`;
-  const headers = new Headers(request.headers);
-  headers.set('Host', TARGET_HOST);
-  
-  const proxyResponse = await fetch(targetUrl, {
-    method: request.method,
-    headers: headers,
-    body: request.body,
-    redirect: 'manual'
-  });
-
+  const proxyResponse = await safeProxyFetch(targetUrl, request, TARGET_HOST);
   const responseHeaders = new Headers(proxyResponse.headers);
 
   // Rewrite Redirects
