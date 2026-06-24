@@ -56,7 +56,7 @@
   <meta name="msvalidate.01" content="099F7701BE7D0B79C7C51734FDC2A2D9" />
   <meta name="ahrefs-site-verification" content="eb0267c26a6f598370b8474c41fc54fc21b4cd8609ec062ce06f47f413eea869" />
   <meta name="google-adsense-account" content="ca-pub-8841434586234905" />
-  <meta property="og:url" content="https://www.1mg.com/partnerships/corporate-wellness" data-rh="true" />
+  <meta property="og:url" content="http://localhost:3000/partnerships/corporate-wellness" data-rh="true" />
   <meta property="fb:app_id" content="212401972496595" data-rh="true" />
   <meta property="og:site_name" content="1mg" data-rh="true" />
   <meta property="og:image"
@@ -70,7 +70,7 @@
   <meta property="twitter:image"
     content="https://assets.1mg.com/pwa-app/production/dweb/2.0.3/static/images/site-icons/1mg-logo-large.png"
     data-rh="true" />
-  <link rel="canonical" href="https://www.1mg.com/partnerships/corporate-wellness" data-rh="true" />
+  <link rel="canonical" href="http://localhost:3000/partnerships/corporate-wellness" data-rh="true" />
   <link rel="publisher" href="https://plus.google.com/+Healthkartplus" />
   <link rel="shortcut icon" type="image/x-icon"
     href="https://assets.1mg.com/pwa-app/production/dweb/2.0.3/static/images/site-icons/favicon.ico" />
@@ -20902,3 +20902,26 @@
     nonce="e1f0374e2f71c1ef134f1d1fef907140"
     data-cf-beacon='{"version":"2024.11.0","token":"ba96d29cd48f4e1ca7562de6d5528a84","server_timing":{"name":{"cfCacheStatus":true,"cfEdge":true,"cfExtPri":true,"cfL4":true,"cfOrigin":true,"cfSpeedBrain":true},"location_startswith":null}}'
     crossorigin="anonymous"></script>
+        <script>
+      (function() {
+        document.addEventListener('click', function(e) {
+          const anchor = e.target.closest('a');
+          if (anchor && anchor.href) {
+            try {
+              const url = new URL(anchor.href);
+              const is1mg = url.hostname === 'www.1mg.com' || url.hostname === '1mg.com' || url.hostname === 'localhost' || url.origin === window.location.origin;
+              if (is1mg) {
+                e.preventDefault();
+                e.stopPropagation();
+                const targetUrl = new URL(anchor.href);
+                targetUrl.protocol = window.location.protocol;
+                targetUrl.host = window.location.host;
+                window.location.href = targetUrl.href;
+              }
+            } catch (err) {
+              console.error('Navigation intercept error:', err);
+            }
+          }
+        }, true);
+      })();
+    </script>

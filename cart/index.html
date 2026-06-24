@@ -526,3 +526,27 @@
 
 </body>
 </html>
+
+        <script>
+      (function() {
+        document.addEventListener('click', function(e) {
+          const anchor = e.target.closest('a');
+          if (anchor && anchor.href) {
+            try {
+              const url = new URL(anchor.href);
+              const is1mg = url.hostname === 'www.1mg.com' || url.hostname === '1mg.com' || url.hostname === 'localhost' || url.origin === window.location.origin;
+              if (is1mg) {
+                e.preventDefault();
+                e.stopPropagation();
+                const targetUrl = new URL(anchor.href);
+                targetUrl.protocol = window.location.protocol;
+                targetUrl.host = window.location.host;
+                window.location.href = targetUrl.href;
+              }
+            } catch (err) {
+              console.error('Navigation intercept error:', err);
+            }
+          }
+        }, true);
+      })();
+    </script>
