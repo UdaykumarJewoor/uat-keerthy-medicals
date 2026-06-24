@@ -222,6 +222,19 @@ async function safeProxyFetch(targetUrl, request, host) {
   // Set Host header correctly
   headers.set('Host', host);
   
+  // Rewrite origin and referer to match target host (avoids WAF/CORS blocks on API/Assets)
+  if (headers.has('origin')) {
+    headers.set('origin', `https://${host}`);
+  }
+  if (headers.has('referer')) {
+    try {
+      const refUrl = new URL(request.url);
+      headers.set('referer', `https://${host}${refUrl.pathname}${refUrl.search}`);
+    } catch (e) {
+      headers.delete('referer');
+    }
+  }
+  
   // Prevent Cloudflare loop blocks and clean up headers
   headers.delete('cf-connecting-ip');
   headers.delete('cf-ray');
