@@ -41,193 +41,191 @@ function modifyHtml(html, urlStr, origin) {
   modified = modified.replace(/https?:\/\/www\.1mg\.com/g, origin);
   modified = modified.replace(/https?:\/\/1mg\.com/g, origin);
 
-  // If this is the ayurveda or partnerships page, block the React scripts to prevent hydration errors and opacity rendering issues
-  if (urlStr.includes('/ayurveda') || urlStr.includes('/partnerships')) {
-    modified = modified.replace(/<script async data-chunk=/g, '<script type="text/blocked" async data-chunk=');
-    modified = modified.replace(/<script id="__LOADABLE_REQUIRED_CHUNKS__"/g, '<script id="__LOADABLE_REQUIRED_CHUNKS__" type="text/blocked"');
-    modified = modified.replace(/<script id="__LOADABLE_REQUIRED_CHUNKS___ext"/g, '<script id="__LOADABLE_REQUIRED_CHUNKS___ext" type="text/blocked"');
+  // Block the React scripts globally to prevent hydration errors and page rendering/opacity issues
+  modified = modified.replace(/<script async data-chunk=/g, '<script type="text/blocked" async data-chunk=');
+  modified = modified.replace(/<script id="__LOADABLE_REQUIRED_CHUNKS__"/g, '<script id="__LOADABLE_REQUIRED_CHUNKS__" type="text/blocked"');
+  modified = modified.replace(/<script id="__LOADABLE_REQUIRED_CHUNKS___ext"/g, '<script id="__LOADABLE_REQUIRED_CHUNKS___ext" type="text/blocked"');
 
-    // Inject opacity override styles specifically for these static pages to bypass animation opacity 0
-    const overrideStyles = `
-    <style>
-      [style*="opacity:0"],
-      [style*="opacity: 0"],
-      [style*="opacity:0;"],
-      [style*="opacity: 0;"],
-      .opacity-none,
-      .opacity-0 {
-        opacity: 1 !important;
-        transform: none !important;
-        visibility: visible !important;
-        transition: none !important;
+  // Inject opacity override styles specifically to bypass animation opacity 0
+  const overrideStyles = `
+  <style>
+    [style*="opacity:0"],
+    [style*="opacity: 0"],
+    [style*="opacity:0;"],
+    [style*="opacity: 0;"],
+    .opacity-none,
+    .opacity-0 {
+      opacity: 1 !important;
+      transform: none !important;
+      visibility: visible !important;
+      transition: none !important;
+    }
+  </style>
+  `;
+  if (modified.includes('</head>')) {
+    modified = modified.replace('</head>', `${overrideStyles}\n</head>`);
+  } else {
+    modified += overrideStyles;
+  }
+
+  // Inject client-side hydration and interaction scripts
+  const clientScript = `
+  <script>
+    (function() {
+      // 1. Recursive Image Hydration
+      function hydrateImages() {
+        try {
+          const slugMap = {};
+          
+          function scanObject(obj) {
+            if (!obj || typeof obj !== 'object') return;
+            if (Array.isArray(obj)) {
+              obj.forEach(item => scanObject(item));
+              return;
+            }
+            if (obj.slug && typeof obj.slug === 'string') {
+              var imgUrl = obj.image || obj.imageUrl || obj.imgUrl || obj.tile_image || obj.logo;
+              if (imgUrl && typeof imgUrl === 'string') {
+                slugMap[obj.slug] = imgUrl;
+                var cleanSlug = obj.slug;
+                if (cleanSlug.endsWith('/')) {
+                  cleanSlug = cleanSlug.slice(0, -1);
+                }
+                slugMap[cleanSlug] = imgUrl;
+                var parts = cleanSlug.split('/');
+                if (parts.length > 0) {
+                  slugMap[parts[parts.length - 1]] = imgUrl;
+                }
+              }
+            }
+            for (var key in obj) {
+              if (Object.prototype.hasOwnProperty.call(obj, key)) {
+                scanObject(obj[key]);
+              }
+            }
+          }
+
+          if (window.__INITIAL_STATE__) scanObject(window.__INITIAL_STATE__);
+          if (window.__ROUTER_INITIAL_DATA__) scanObject(window.__ROUTER_INITIAL_DATA__);
+
+          const links = document.querySelectorAll('a');
+          links.forEach(link => {
+            const href = link.getAttribute('href');
+            if (!href) return;
+            var cleanHref = href;
+            if (cleanHref.endsWith('/')) {
+              cleanHref = cleanHref.slice(0, -1);
+            }
+            const pathSegments = cleanHref.split('/');
+            const lastSegment = pathSegments[pathSegments.length - 1];
+            const imageUrl = slugMap[href] || slugMap[cleanHref] || slugMap[lastSegment];
+            if (imageUrl) {
+              const img = link.querySelector('img');
+              if (img) {
+                img.src = imageUrl;
+                for (let c of [...img.classList]) {
+                  if (c.includes('img-loading') || c.includes('transparentImage') || c.includes('Loader') || c.includes('ImageLoader') || c.includes('shimmer')) {
+                    img.classList.remove(c);
+                  }
+                }
+                img.style.opacity = '1';
+                img.style.visibility = 'visible';
+                img.style.display = 'block';
+                img.style.content = 'initial';
+              }
+            }
+          });
+        } catch (e) {
+          console.error('[Image Hydrator] Error:', e);
+        }
       }
-    </style>
-    `;
-    if (modified.includes('</head>')) {
-      modified = modified.replace('</head>', `${overrideStyles}\n</head>`);
-    } else {
-      modified += overrideStyles;
-    }
 
-    // Inject client-side hydration and interaction scripts
-    const clientScript = `
-    <script>
-      (function() {
-        // 1. Recursive Image Hydration
-        function hydrateImages() {
-          try {
-            const slugMap = {};
+      // 2. Tab Switcher
+      function setupTabs() {
+        try {
+          const tabs = document.querySelectorAll('[class*="SolutionSection__tab__"]');
+          const contents = document.querySelectorAll('[class*="SolutionSection__positionRelative__"] > div');
+          
+          if (tabs.length === 0 || contents.length === 0) return;
+          
+          tabs.forEach((tab, index) => {
+            if (tab.dataset.tabListened) return;
+            tab.dataset.tabListened = 'true';
             
-            function scanObject(obj) {
-              if (!obj || typeof obj !== 'object') return;
-              if (Array.isArray(obj)) {
-                obj.forEach(item => scanObject(item));
-                return;
-              }
-              if (obj.slug && typeof obj.slug === 'string') {
-                var imgUrl = obj.image || obj.imageUrl || obj.imgUrl || obj.tile_image || obj.logo;
-                if (imgUrl && typeof imgUrl === 'string') {
-                  slugMap[obj.slug] = imgUrl;
-                  var cleanSlug = obj.slug;
-                  if (cleanSlug.endsWith('/')) {
-                    cleanSlug = cleanSlug.slice(0, -1);
-                  }
-                  slugMap[cleanSlug] = imgUrl;
-                  var parts = cleanSlug.split('/');
-                  if (parts.length > 0) {
-                    slugMap[parts[parts.length - 1]] = imgUrl;
-                  }
-                }
-              }
-              for (var key in obj) {
-                if (Object.prototype.hasOwnProperty.call(obj, key)) {
-                  scanObject(obj[key]);
-                }
-              }
-            }
-
-            if (window.__INITIAL_STATE__) scanObject(window.__INITIAL_STATE__);
-            if (window.__ROUTER_INITIAL_DATA__) scanObject(window.__ROUTER_INITIAL_DATA__);
-
-            const links = document.querySelectorAll('a');
-            links.forEach(link => {
-              const href = link.getAttribute('href');
-              if (!href) return;
-              var cleanHref = href;
-              if (cleanHref.endsWith('/')) {
-                cleanHref = cleanHref.slice(0, -1);
-              }
-              const pathSegments = cleanHref.split('/');
-              const lastSegment = pathSegments[pathSegments.length - 1];
-              const imageUrl = slugMap[href] || slugMap[cleanHref] || slugMap[lastSegment];
-              if (imageUrl) {
-                const img = link.querySelector('img');
-                if (img) {
-                  img.src = imageUrl;
-                  for (let c of [...img.classList]) {
-                    if (c.includes('img-loading') || c.includes('transparentImage') || c.includes('Loader') || c.includes('ImageLoader') || c.includes('shimmer')) {
-                      img.classList.remove(c);
-                    }
-                  }
-                  img.style.opacity = '1';
-                  img.style.visibility = 'visible';
-                  img.style.display = 'block';
-                  img.style.content = 'initial';
-                }
-              }
-            });
-          } catch (e) {
-            console.error('[Image Hydrator] Error:', e);
-          }
-        }
-
-        // 2. Tab Switcher
-        function setupTabs() {
-          try {
-            const tabs = document.querySelectorAll('[class*="SolutionSection__tab__"]');
-            const contents = document.querySelectorAll('[class*="SolutionSection__positionRelative__"] > div');
-            
-            if (tabs.length === 0 || contents.length === 0) return;
-            
-            tabs.forEach((tab, index) => {
-              if (tab.dataset.tabListened) return;
-              tab.dataset.tabListened = 'true';
+            tab.addEventListener('click', () => {
+              tabs.forEach(t => {
+                t.style.backgroundColor = '';
+              });
+              tab.style.backgroundColor = '#cde7fd';
               
-              tab.addEventListener('click', () => {
-                tabs.forEach(t => {
-                  t.style.backgroundColor = '';
-                });
-                tab.style.backgroundColor = '#cde7fd';
-                
-                contents.forEach(c => {
-                  c.style.display = 'none';
-                  c.classList.remove('SolutionSection__activeItem__bIfWD');
-                });
-                
-                const activeContent = contents[index];
-                if (activeContent) {
-                  activeContent.style.display = 'block';
-                  activeContent.style.opacity = '1';
-                  activeContent.style.position = 'relative';
-                  activeContent.classList.add('SolutionSection__activeItem__bIfWD');
-                }
+              contents.forEach(c => {
+                c.style.display = 'none';
+                c.classList.remove('SolutionSection__activeItem__bIfWD');
               });
+              
+              const activeContent = contents[index];
+              if (activeContent) {
+                activeContent.style.display = 'block';
+                activeContent.style.opacity = '1';
+                activeContent.style.position = 'relative';
+                activeContent.classList.add('SolutionSection__activeItem__bIfWD');
+              }
             });
-          } catch (e) {
-            console.error('[Tab Switcher] Error:', e);
-          }
+          });
+        } catch (e) {
+          console.error('[Tab Switcher] Error:', e);
         }
+      }
 
-        // 3. Mobile Menu Toggle
-        function setupMobileMenu() {
-          try {
-            const hamburger = document.querySelector('[class*="Header__btnBg__"]');
-            const mobileMenu = document.querySelector('#headerSlideIcon');
-            if (hamburger && mobileMenu && !hamburger.dataset.menuListened) {
-              hamburger.dataset.menuListened = 'true';
-              hamburger.addEventListener('click', (e) => {
-                e.stopPropagation();
-                if (mobileMenu.style.display === 'block') {
-                  mobileMenu.style.display = 'none';
-                } else {
-                  mobileMenu.style.display = 'block';
-                }
-              });
-              document.addEventListener('click', () => {
+      // 3. Mobile Menu Toggle
+      function setupMobileMenu() {
+        try {
+          const hamburger = document.querySelector('[class*="Header__btnBg__"]');
+          const mobileMenu = document.querySelector('#headerSlideIcon');
+          if (hamburger && mobileMenu && !hamburger.dataset.menuListened) {
+            hamburger.dataset.menuListened = 'true';
+            hamburger.addEventListener('click', (e) => {
+              e.stopPropagation();
+              if (mobileMenu.style.display === 'block') {
                 mobileMenu.style.display = 'none';
-              });
-              mobileMenu.addEventListener('click', (e) => {
-                e.stopPropagation();
-              });
-            }
-          } catch (e) {
-            console.error('[Mobile Menu] Error:', e);
+              } else {
+                mobileMenu.style.display = 'block';
+              }
+            });
+            document.addEventListener('click', () => {
+              mobileMenu.style.display = 'none';
+            });
+            mobileMenu.addEventListener('click', (e) => {
+              e.stopPropagation();
+            });
           }
+        } catch (e) {
+          console.error('[Mobile Menu] Error:', e);
         }
+      }
 
-        function runAll() {
-          hydrateImages();
-          setupTabs();
-          setupMobileMenu();
-        }
+      function runAll() {
+        hydrateImages();
+        setupTabs();
+        setupMobileMenu();
+      }
 
-        if (document.readyState === 'loading') {
-          document.addEventListener('DOMContentLoaded', runAll);
-        } else {
-          runAll();
-        }
-        setTimeout(runAll, 500);
-        setTimeout(runAll, 1500);
-        setTimeout(runAll, 3000);
-      })();
-    </script>
-    `;
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', runAll);
+      } else {
+        runAll();
+      }
+      setTimeout(runAll, 500);
+      setTimeout(runAll, 1500);
+      setTimeout(runAll, 3000);
+    })();
+  </script>
+  `;
 
-    if (modified.includes('</body>')) {
-      modified = modified.replace('</body>', `${clientScript}\n</body>`);
-    } else {
-      modified += clientScript;
-    }
+  if (modified.includes('</body>')) {
+    modified = modified.replace('</body>', `${clientScript}\n</body>`);
+  } else {
+    modified += clientScript;
   }
 
   // Force logo replacement in CSS style
@@ -296,6 +294,19 @@ function modifyHtml(html, urlStr, origin) {
     <script>
       (function() {
         document.addEventListener('click', function(e) {
+          // 1. Intercept Login or Signup button-like elements/divs
+          const text = e.target.textContent ? e.target.textContent.trim() : '';
+          if (text === 'Login' || text === 'Signup' || text === 'Login | Signup') {
+            const isHeader = e.target.closest('[class*="Header__"]') || e.target.closest('[class*="header"]');
+            if (isHeader || e.target.classList.contains('pointer')) {
+              e.preventDefault();
+              e.stopPropagation();
+              window.location.href = '/login/';
+              return;
+            }
+          }
+
+          // 2. Intercept regular <a> tag clicks for internal links
           const anchor = e.target.closest('a');
           if (anchor && anchor.href) {
             try {
