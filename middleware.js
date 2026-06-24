@@ -5,15 +5,16 @@ const ASSETS_HOST = 'assets.1mg.com';
 
 function rebrand(text) {
   if (typeof text !== 'string') return text;
+
   let rebranded = text;
-  
+
   // Primary brand color replacements
   rebranded = rebranded.replace(/#ff6f61/gi, '#1b9c54');
   rebranded = rebranded.replace(/#ff5443/gi, '#1b9c54');
   rebranded = rebranded.replace(/#e55e51/gi, '#157e43');
   rebranded = rebranded.replace(/rgb\(\s*255\s*,\s*111\s*,\s*97\s*\)/gi, 'rgb(27, 156, 84)');
   rebranded = rebranded.replace(/255\s*,\s*111\s*,\s*97/g, '27, 156, 84');
-  
+
   // Custom button gradients and colors (orange/pink/coral) used in partnerships page
   rebranded = rebranded.replace(/#eb5b26/gi, '#1b9c54');
   rebranded = rebranded.replace(/#e4336f/gi, '#157e43');
@@ -21,13 +22,13 @@ function rebrand(text) {
   rebranded = rebranded.replace(/rgba\(\s*228\s*,\s*51\s*,\s*111\s*,\s*([\d.]+)\)/gi, 'rgba(21, 126, 67, $1)');
   rebranded = rebranded.replace(/235\s*,\s*91\s*,\s*38/g, '27, 156, 84');
   rebranded = rebranded.replace(/228\s*,\s*51\s*,\s*111/g, '21, 126, 67');
-  
+
   return rebranded;
 }
 
 function modifyHtml(html, urlStr, origin) {
   let modified = html;
-  
+
   // Replace absolute and relative logo URLs with /image.png
   modified = modified.replace(/https?:\/\/(?:assets|www|images)\.1mg\.com\/[^\s"'`>]*tata_1mg_logo\.(?:svg|png|jpg|jpeg|gif)/gi, '/image.png');
   modified = modified.replace(/https?:\/\/(?:assets|www|images)\.1mg\.com\/[^\s"'`>]*1mg-logo-large\.(?:svg|png|jpg|jpeg|gif)/gi, '/image.png');
@@ -352,20 +353,20 @@ export async function middleware(request) {
   if (
     path.startsWith('/_next/') ||
     path.startsWith('/api/') ||
-    (path.includes('.') && 
-     path !== '/image.png' && 
-     !path.includes('tata_1mg_logo') && 
-     !path.includes('1mg-logo') && 
-     !path.includes('favicon') && 
-     !path.includes('apple-touch-icon'))
+    (path.includes('.') &&
+      path !== '/image.png' &&
+      !path.includes('tata_1mg_logo') &&
+      !path.includes('1mg-logo') &&
+      !path.includes('favicon') &&
+      !path.includes('apple-touch-icon'))
   ) {
     return NextResponse.next();
   }
 
   // 1. Intercept logo and favicon requests
   if (
-    path === '/image.png' || 
-    path.includes('tata_1mg_logo') || 
+    path === '/image.png' ||
+    path.includes('tata_1mg_logo') ||
     path.includes('1mg-logo') ||
     path.includes('favicon') ||
     path.includes('apple-touch-icon')
@@ -385,11 +386,11 @@ export async function middleware(request) {
   if (path.startsWith('/assets_proxy/')) {
     const assetPath = path.replace('/assets_proxy', '');
     const assetUrl = `https://${ASSETS_HOST}${assetPath}${url.search}`;
-    
+
     const headers = new Headers(request.headers);
     headers.set('Host', ASSETS_HOST);
     headers.delete('accept-encoding'); // Disable compression so we can edit body
-    
+
     const proxyResponse = await fetch(assetUrl, {
       method: request.method,
       headers: headers,
@@ -398,7 +399,7 @@ export async function middleware(request) {
 
     const responseHeaders = new Headers(proxyResponse.headers);
     responseHeaders.set('Access-Control-Allow-Origin', '*');
-    
+
     const contentType = responseHeaders.get('Content-Type') || '';
     if (contentType.includes('text/css')) {
       let css = await proxyResponse.text();
@@ -422,7 +423,7 @@ export async function middleware(request) {
   } else if (!path.includes('.')) {
     publicPath += '/index.html';
   }
-  
+
   const checkStaticUrl = new URL(publicPath, request.url);
   const staticResponse = await fetch(checkStaticUrl, {
     headers: {
@@ -445,7 +446,7 @@ export async function middleware(request) {
   const headers = new Headers(request.headers);
   headers.set('Host', TARGET_HOST);
   headers.delete('accept-encoding');
-  
+
   const proxyResponse = await fetch(targetUrl, {
     method: request.method,
     headers: headers,
@@ -464,7 +465,7 @@ export async function middleware(request) {
         locUrl.protocol = url.protocol;
         locUrl.host = url.host;
         responseHeaders.set('Location', locUrl.href);
-      } catch (e) {}
+      } catch (e) { }
     }
   }
 
