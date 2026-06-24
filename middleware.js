@@ -205,6 +205,119 @@ function modifyHtml(html, urlStr, origin) {
           }
         } catch (e) {
           console.error('[Mobile Menu] Error:', e);
+      // 4. Global Login State synchronization
+      function setupLoginState() {
+        try {
+          const isLoggedIn = localStorage.getItem('km_logged_in') === 'true';
+          const phone = localStorage.getItem('km_user_phone') || '';
+          
+          // Find the Login | Signup parent div in the header
+          const divs = document.querySelectorAll('div');
+          let targetParent = null;
+          
+          for (let i = 0; i < divs.length; i++) {
+            const div = divs[i];
+            if (div.textContent.trim() === 'Login' && div.classList.contains('Header__navigationItemText__ShdZ9')) {
+              const flexContainer = div.parentElement?.parentElement;
+              if (flexContainer && flexContainer.classList.contains('alignCenter')) {
+                targetParent = flexContainer.parentElement;
+                break;
+              }
+            }
+          }
+          
+          if (!targetParent) {
+            const links = document.querySelectorAll('[role="link"]');
+            links.forEach(link => {
+              if (link.textContent.includes('Login')) {
+                const flex = link.parentElement;
+                if (flex) {
+                  targetParent = flex.parentElement;
+                }
+              }
+            });
+          }
+          
+          if (targetParent) {
+            if (isLoggedIn) {
+              if (targetParent.querySelector('#kmProfileContainer')) return;
+              
+              // We need to inject the CSS for the dropdown in case it's not present
+              if (!document.getElementById('km-global-dropdown-style')) {
+                const style = document.createElement('style');
+                style.id = 'km-global-dropdown-style';
+                style.textContent = \`
+                  .km-profile-container { position: relative; display: flex; align-items: center; }
+                  .km-profile-trigger { display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 6px 12px; border-radius: 8px; transition: background-color 0.2s ease; user-select: none; }
+                  .km-profile-trigger:hover { background-color: #f1f5f9; }
+                  .km-profile-dropdown { position: absolute; top: 100%; right: 0; margin-top: 8px; width: 220px; background: #ffffff; border-radius: 12px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1); border: 1px solid #e2e8f0; z-index: 1000; opacity: 0; visibility: hidden; transform: translateY(10px); transition: opacity 0.2s ease, visibility 0.2s ease, transform 0.2s ease; }
+                  .km-profile-container:hover .km-profile-dropdown, .km-profile-container.active .km-profile-dropdown { opacity: 1; visibility: visible; transform: translateY(0); }
+                  .km-dropdown-header { padding: 16px; border-bottom: 1px solid #f1f5f9; }
+                  .km-dropdown-user-name { font-size: 15px; font-weight: 700; color: #0f172a; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+                  .km-dropdown-user-phone { font-size: 12px; color: #64748b; }
+                  .km-dropdown-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; color: #334155; text-decoration: none; font-size: 14px; font-weight: 500; transition: background-color 0.2s ease, color 0.2s ease; cursor: pointer; }
+                  .km-dropdown-item:hover { background-color: #f8fafc; color: #1b9c54; }
+                  .km-dropdown-item-logout { border-top: 1px solid #f1f5f9; color: #ef4444; }
+                  .km-dropdown-item-logout:hover { background-color: #fef2f2; color: #dc2626; }
+                \`;
+                document.head.appendChild(style);
+              }
+              
+              targetParent.innerHTML = \`
+                <div class="km-profile-container" id="kmProfileContainer">
+                  <div class="km-profile-trigger" id="kmProfileTrigger">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1b9c54" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                    <span style="font-size: 14px; font-weight: 700; color: #1e293b; font-family: inherit;">Udaykumar</span>
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 2px;"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                  </div>
+                  <div class="km-profile-dropdown" id="kmProfileDropdown">
+                    <div class="km-dropdown-header">
+                      <div class="km-dropdown-user-name">Udaykumar Jewoor</div>
+                      <div class="km-dropdown-user-phone">+91 \\\${phone.slice(0,5)} \\\${phone.slice(5)}</div>
+                    </div>
+                    <a href="/orders" class="km-dropdown-item">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+                      My Orders
+                    </a>
+                    <a href="/profile" class="km-dropdown-item">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                      My Profile
+                    </a>
+                    <a href="/help" class="km-dropdown-item">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                      Help & Support
+                    </a>
+                    <div class="km-dropdown-item km-dropdown-item-logout" id="kmLogoutBtn">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                      Logout
+                    </div>
+                  </div>
+                </div>
+              \`;
+              
+              // Wire up logout button
+              document.getElementById('kmLogoutBtn').addEventListener('click', () => {
+                localStorage.removeItem('km_logged_in');
+                localStorage.removeItem('km_user_phone');
+                location.reload();
+              });
+              
+              // Hover/Click trigger logic for dropdown
+              const container = document.getElementById('kmProfileContainer');
+              const trigger = document.getElementById('kmProfileTrigger');
+              
+              trigger.addEventListener('click', (e) => {
+                e.stopPropagation();
+                container.classList.toggle('active');
+              });
+              
+              document.addEventListener('click', () => {
+                container.classList.remove('active');
+              });
+            }
+          }
+        } catch (e) {
+          console.error('[Login Sync] Error:', e);
         }
       }
 
@@ -212,6 +325,7 @@ function modifyHtml(html, urlStr, origin) {
         hydrateImages();
         setupTabs();
         setupMobileMenu();
+        setupLoginState();
       }
 
       if (document.readyState === 'loading') {
@@ -305,7 +419,13 @@ function modifyHtml(html, urlStr, origin) {
             if (isHeader || e.target.classList.contains('pointer')) {
               e.preventDefault();
               e.stopPropagation();
-              window.location.href = '/login/';
+              if (window.location.pathname === '/login/' || window.location.pathname === '/login') {
+                if (typeof window.showLoginModal === 'function') {
+                  window.showLoginModal();
+                }
+              } else {
+                window.location.href = '/login/';
+              }
               return;
             }
           }
