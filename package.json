@@ -1,0 +1,11 @@
+{
+  "name": "uat-keerthy-medicals",
+  "version": "1.0.0",
+  "description": "Rebranded medical site with global image hydration and self-debugging proxy",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "preprocess": "node scratch/rebrand_static_main.js"
+  },
+  "dependencies": {}
+}

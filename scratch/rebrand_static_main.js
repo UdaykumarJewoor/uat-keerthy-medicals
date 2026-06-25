@@ -1,350 +1,63 @@
-<!DOCTYPE html>
-<html lang="en">
+const fs = require('fs');
+const path = require('path');
 
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Online Doctor Consultation | Consult Specialists 24/7 | Tata 1mg Clone</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --primary: #1b9c54;
-      --primary-hover: #157e43;
-      --text-main: #212121;
-      --text-sub: #666666;
-      --bg-light: #f8f9fa;
-      --border-color: #e0e0e0;
-      --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
-      --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
-      --transition: all 0.2s ease-in-out;
-    }
+// Rebrand color helper
+function rebrand(text) {
+  if (typeof text !== 'string') return text;
+  let rebranded = text;
+  
+  // Primary brand color replacements (Orange to Green)
+  rebranded = rebranded.replace(/#ff6f61/gi, '#1b9c54');
+  rebranded = rebranded.replace(/#ff5443/gi, '#1b9c54');
+  rebranded = rebranded.replace(/#e55e51/gi, '#157e43');
+  rebranded = rebranded.replace(/rgb\(\s*255\s*,\s*111\s*,\s*97\s*\)/gi, 'rgb(27, 156, 84)');
+  rebranded = rebranded.replace(/255\s*,\s*111\s*,\s*97/g, '27, 156, 84');
+  
+  // Custom button gradients and colors (orange/pink/coral) used in partnerships page
+  rebranded = rebranded.replace(/#eb5b26/gi, '#1b9c54');
+  rebranded = rebranded.replace(/#e4336f/gi, '#157e43');
+  rebranded = rebranded.replace(/rgba\(\s*235\s*,\s*91\s*,\s*38\s*,\s*([\d.]+)\)/gi, 'rgba(27, 156, 84, $1)');
+  rebranded = rebranded.replace(/rgba\(\s*228\s*,\s*51\s*,\s*111\s*,\s*([\d.]+)\)/gi, 'rgba(21, 126, 67, $1)');
+  rebranded = rebranded.replace(/235\s*,\s*91\s*,\s*38/g, '27, 156, 84');
+  rebranded = rebranded.replace(/228\s*,\s*51\s*,\s*111/g, '21, 126, 67');
+  
+  return rebranded;
+}
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
+// modifyHtml helper with relative paths for domain-agnostic static serving
+function modifyHtml(html, url) {
+  let cleaned = html;
+  
+  // --- CLEAN UP PREVIOUS INJECTIONS ---
+  cleaned = cleaned.replace(/<style>\s*\/\* Force our logo[\s\S]*?<\/style>/gi, '');
+  cleaned = cleaned.replace(/<style>\s*\[style\*="opacity:0"][\s\S]*?<\/style>/gi, '');
+  cleaned = cleaned.replace(/<script>\s*\(function\(\)\s*\{\s*\/\/ 1\. Recursive Image Hydration[\s\S]*?<\/script>/gi, '');
+  cleaned = cleaned.replace(/<script>\s*\(function\(\)\s*\{\s*document\.addEventListener\('click'[\s\S]*?<\/script>/gi, '');
+  cleaned = cleaned.replace(/<script>\s*\(function\(\)\s*\{\s*\/\/ Initialize debug overlay[\s\S]*?<\/script>/gi, '');
+  cleaned = cleaned.replace(/<script type="text\/blocked" type="text\/blocked"/g, 'type="text\/blocked"');
+  
+  let modified = cleaned;
+  
+  // Replace absolute and relative logo URLs with /image.png
+  modified = modified.replace(/https?:\/\/(?:assets|www|images)\.1mg\.com\/[^\s"'`>]*tata_1mg_logo\.(?:svg|png|jpg|jpeg|gif)/gi, '/image.png');
+  modified = modified.replace(/https?:\/\/(?:assets|www|images)\.1mg\.com\/[^\s"'`>]*1mg-logo-large\.(?:svg|png|jpg|jpeg|gif)/gi, '/image.png');
+  modified = modified.replace(/\/images\/tata_1mg_logo\.svg/g, '/image.png');
 
-    body {
-      font-family: 'Outfit', sans-serif;
-      color: var(--text-main);
-      background-color: #ffffff;
-      line-height: 1.5;
-    }
+  // Replace references to assets.1mg.com with local relative assets_proxy
+  modified = modified.replace(/https?:\/\/assets\.1mg\.com/g, '/assets_proxy');
+  modified = modified.replace(/\/\/assets\.1mg\.com/g, '/assets_proxy');
 
-    /* Header Styles */
-    header {
-      background: #ffffff;
-      border-bottom: 1px solid var(--border-color);
-      position: sticky;
-      top: 0;
-      z-index: 1000;
-    }
+  // Replace absolute references to the live site with relative paths
+  modified = modified.replace(/https?:\/\/www\.1mg\.com/g, '');
+  modified = modified.replace(/https?:\/\/1mg\.com/g, '');
 
-    .header-container {
-      max-width: 1200px;
-      margin: 0 auto;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 12px 20px;
-    }
+  // Block the React scripts globally to prevent hydration errors and page rendering/opacity issues
+  modified = modified.replace(/<script(?! type="text\/blocked") async data-chunk=/g, '<script type="text/blocked" async data-chunk=');
+  modified = modified.replace(/<script(?! type="text\/blocked") id="__LOADABLE_REQUIRED_CHUNKS__"/g, '<script id="__LOADABLE_REQUIRED_CHUNKS__" type="text/blocked"');
+  modified = modified.replace(/<script(?! type="text\/blocked") id="__LOADABLE_REQUIRED_CHUNKS___ext"/g, '<script id="__LOADABLE_REQUIRED_CHUNKS___ext" type="text/blocked"');
 
-    .brand-logo {
-      text-decoration: none;
-      display: flex;
-      align-items: center;
-    }
-
-    nav {
-      display: flex;
-      align-items: center;
-      gap: 20px;
-    }
-
-    nav a {
-      text-decoration: none;
-      color: var(--text-main);
-      font-size: 13px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.2px;
-      padding: 6px 0;
-      border-bottom: 2px solid transparent;
-      transition: var(--transition);
-    }
-
-    nav a:hover {
-      color: var(--primary);
-    }
-
-    nav a.active {
-      color: var(--primary);
-      border-bottom-color: var(--primary);
-    }
-
-    .right-menu {
-      display: flex;
-      align-items: center;
-      gap: 20px;
-    }
-
-    .right-menu a {
-      text-decoration: none;
-      color: var(--text-main);
-      font-size: 14px;
-      font-weight: 500;
-      transition: var(--transition);
-    }
-
-    .right-menu a:hover {
-      color: var(--primary);
-    }
-
-    /* Main Container */
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 40px 20px;
-    }
-
-    /* Hero Section */
-    .hero-section {
-      background: linear-gradient(135deg, #fff5f4 0%, #fffefe 100%);
-      border-radius: 16px;
-      padding: 50px 40px;
-      margin-bottom: 40px;
-      border: 1px solid #fecdd3;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 40px;
-    }
-
-    .hero-content {
-      flex: 1;
-    }
-
-    .hero-tag {
-      display: inline-block;
-      background: rgba(27, 156, 84, 0.1);
-      color: var(--primary);
-      padding: 6px 12px;
-      border-radius: 20px;
-      font-size: 12px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin-bottom: 16px;
-    }
-
-    .hero-title {
-      font-size: 36px;
-      font-weight: 800;
-      margin-bottom: 16px;
-      color: #1a1a1a;
-      line-height: 1.2;
-    }
-
-    .hero-desc {
-      color: var(--text-sub);
-      font-size: 16px;
-      margin-bottom: 28px;
-      max-width: 500px;
-    }
-
-    .hero-cta {
-      display: inline-block;
-      background: var(--primary);
-      color: white;
-      text-decoration: none;
-      padding: 14px 28px;
-      border-radius: 8px;
-      font-weight: 700;
-      font-size: 16px;
-      transition: var(--transition);
-      box-shadow: 0 4px 6px rgba(27, 156, 84, 0.2);
-    }
-
-    .hero-cta:hover {
-      background: var(--primary-hover);
-      transform: translateY(-2px);
-    }
-
-    .hero-stats {
-      display: flex;
-      gap: 30px;
-      margin-top: 30px;
-      border-top: 1px solid var(--border-color);
-      padding-top: 20px;
-    }
-
-    .stat-item h4 {
-      font-size: 20px;
-      font-weight: 800;
-      color: var(--primary);
-    }
-
-    .stat-item p {
-      font-size: 13px;
-      color: var(--text-sub);
-    }
-
-    /* Specialties Grid */
-    .section-title {
-      font-size: 24px;
-      font-weight: 700;
-      margin-bottom: 24px;
-      position: relative;
-      padding-left: 12px;
-    }
-
-    .section-title::before {
-      content: '';
-      position: absolute;
-      left: 0;
-      top: 4px;
-      bottom: 4px;
-      width: 4px;
-      background-color: var(--primary);
-      border-radius: 2px;
-    }
-
-    .grid-container {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 24px;
-      margin-bottom: 50px;
-    }
-
-    .specialty-card {
-      background: white;
-      border: 1px solid var(--border-color);
-      border-radius: 12px;
-      padding: 24px;
-      transition: var(--transition);
-      display: flex;
-      flex-direction: column;
-      height: 100%;
-      cursor: pointer;
-    }
-
-    .specialty-card:hover {
-      transform: translateY(-4px);
-      box-shadow: var(--shadow-md);
-      border-color: #ffd2cc;
-    }
-
-    .specialty-icon {
-      font-size: 40px;
-      margin-bottom: 16px;
-      background: #fff5f4;
-      width: 64px;
-      height: 64px;
-      border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .specialty-title {
-      font-size: 18px;
-      font-weight: 700;
-      margin-bottom: 6px;
-      color: #1a1a1a;
-    }
-
-    .specialty-desc {
-      color: var(--text-sub);
-      font-size: 14px;
-      margin-bottom: 20px;
-      flex-grow: 1;
-    }
-
-    .specialty-price {
-      font-size: 15px;
-      font-weight: 700;
-      color: var(--primary);
-      margin-bottom: 12px;
-    }
-
-    .consult-btn {
-      text-align: center;
-      background: transparent;
-      color: var(--primary);
-      border: 1px solid var(--primary);
-      text-decoration: none;
-      padding: 10px 16px;
-      border-radius: 8px;
-      font-weight: 600;
-      font-size: 14px;
-      transition: var(--transition);
-    }
-
-    .specialty-card:hover .consult-btn {
-      background: var(--primary);
-      color: white;
-    }
-
-    /* How It Works Section */
-    .how-it-works {
-      background: var(--bg-light);
-      border-radius: 16px;
-      padding: 40px;
-      margin-bottom: 50px;
-      border: 1px solid var(--border-color);
-    }
-
-    .steps-container {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 30px;
-      margin-top: 30px;
-    }
-
-    .step-card {
-      text-align: center;
-      position: relative;
-    }
-
-    .step-num {
-      background: var(--primary);
-      color: white;
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 700;
-      margin: 0 auto 16px;
-    }
-
-    .step-title {
-      font-size: 16px;
-      font-weight: 700;
-      margin-bottom: 8px;
-    }
-
-    .step-desc {
-      color: var(--text-sub);
-      font-size: 14px;
-    }
-
-    /* Footer */
-    footer {
-      background: var(--bg-light);
-      border-top: 1px solid var(--border-color);
-      padding: 30px 20px;
-      text-align: center;
-      font-size: 14px;
-      color: var(--text-sub);
-      margin-top: 60px;
-    }
-  </style>
-
+  // Inject opacity override styles specifically to bypass animation opacity 0 and pre-hydration hidden states
+  const overrideStyles = `
   <style>
     /* Override hidden/opacity-0 states from unhydrated React widgets */
     [style*="opacity:0"],
@@ -362,217 +75,15 @@
       transition: none !important;
     }
   </style>
-  
+  `;
+  if (modified.includes('</head>')) {
+    modified = modified.replace('</head>', `${overrideStyles}\n</head>`);
+  } else {
+    modified += overrideStyles;
+  }
 
-  <style>
-    /* Force our logo on the main header logo elements */
-    [class*="Header__logo__"],
-    .Header__logoFallback___SCxk,
-    img[src*="tata_1mg_logo"],
-    img[src*="1mg-logo"],
-    img[src*="image.png"],
-    .DioRxProcessing__logo__NQ6Ju,
-    .PackageCard__labLogo__t4Tk5,
-    [class*="FooterSection__"] img[width="124px"][height="36px"],
-    [class*="Footer__"] img[width="124px"][height="36px"],
-    .footer img[width="124px"][height="36px"] {
-      content: url('/image.png') !important;
-      opacity: 1 !important;
-      visibility: visible !important;
-      width: 100% !important;
-      height: auto !important;
-      max-width: 124px !important;
-      max-height: 36px !important;
-      object-fit: contain !important;
-    }
-    
-    /* Force background images if any */
-    .logo-container a, 
-    .logo-container img {
-      background-image: url('/image.png') !important;
-    }
-
-    /* Hide or replace TATA digital logo/branding in header if any */
-    img[src*="tata_logo"],
-    img[src*="tata-logo"],
-    img[src*="tatadigital"],
-    .tata-logo,
-    [class*="tata-logo"],
-    [class*="TataLogo"],
-    [class*="tataLogo"],
-    [class*="header_logo_horizontal"] {
-      display: none !important;
-    }
-
-    /* Force green color on buttons that use the coral gradient */
-    [class*="PrimaryButton__coralGradient__"],
-    [class*="PrimaryButton__coralGradientBright__"] {
-      background: linear-gradient(91.23deg, #1b9c54 0%, #157e43 100%) !important;
-    }
-    [class*="PrimaryButton__coralOutlined__"] {
-      color: #1b9c54 !important;
-      border-color: #1b9c54 !important;
-    }
-  </style>
-  
-</head>
-
-<body>
-
-  <!-- Navigation Header -->
-  <header>
-    <div class="header-container">
-      <a href="/" class="brand-logo">
-        <img src="/image.png" alt="Keerthy Medical Stores" style="max-height: 36px; width: auto; object-fit: contain;">
-      </a>
-      <nav>
-        <a href="/">Medicines</a>
-        <a href="/labs/">Lab Tests</a>
-        <a href="/online-doctor-consultation/" class="active">Consult Doctors</a>
-        <a href="/cancer-care/">Cancer Care</a>
-        <a href="/ayurveda/">Ayurveda</a>
-        <a href="/partnerships/">Partnerships</a>
-        <a href="/corporates/">Corporates</a>
-        <a href="/subscription-plan/">Care Plan</a>
-      </nav>
-      <div class="right-menu">
-        <a href="/login/">Login | Signup</a>
-        <a href="/offers/">Offers</a>
-        <a href="/cart/" class="cart-icon">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-            stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="9" cy="21" r="1"></circle>
-            <circle cx="20" cy="21" r="1"></circle>
-            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
-          </svg>
-        </a>
-      </div>
-    </div>
-  </header>
-
-  <!-- Main Content -->
-  <div class="container">
-    
-    <!-- Hero Banner -->
-    <div class="hero-section">
-      <div class="hero-content">
-        <span class="hero-tag">24/7 Digital Clinic</span>
-        <h1 class="hero-title">Consult Top Specialist Doctors Online</h1>
-        <p class="hero-desc">Connect with verified medical specialists in minutes from the safety and comfort of your home. Safe, secure, and confidential consultation.</p>
-        <a href="#specialties" class="hero-cta">Book Consultation</a>
-        
-        <div class="hero-stats">
-          <div class="stat-item">
-            <h4>10 Min</h4>
-            <p>Average response time</p>
-          </div>
-          <div class="stat-item">
-            <h4>500+</h4>
-            <p>Verified Doctors</p>
-          </div>
-          <div class="stat-item">
-            <h4>4.8 ★</h4>
-            <p>User Satisfaction Rating</p>
-          </div>
-        </div>
-      </div>
-      <div class="hero-image hide-mobile" style="font-size: 150px; opacity: 0.85;">
-        🩺
-      </div>
-    </div>
-
-    <!-- Specialties Grid -->
-    <h2 id="specialties" class="section-title">Consult by Speciality</h2>
-    <div class="grid-container">
-      
-      <!-- General Physician -->
-      <div class="specialty-card">
-        <div class="specialty-icon">🤒</div>
-        <h3 class="specialty-title">General Physician</h3>
-        <p class="specialty-desc">For common health queries, fever, cold, cough, headache, body pains, or digestive issues.</p>
-        <div class="specialty-price">Consultation fee: ₹199</div>
-        <a href="#" class="consult-btn">Consult Now</a>
-      </div>
-
-      <!-- Gynaecology -->
-      <div class="specialty-card">
-        <div class="specialty-icon">👩‍⚕️</div>
-        <h3 class="specialty-title">Gynaecology</h3>
-        <p class="specialty-desc">Specialized consultations for women's health, pregnancy, periods, and reproductive care.</p>
-        <div class="specialty-price">Consultation fee: ₹299</div>
-        <a href="#" class="consult-btn">Consult Now</a>
-      </div>
-
-      <!-- Dermatology -->
-      <div class="specialty-card">
-        <div class="specialty-icon">✨</div>
-        <h3 class="specialty-title">Dermatology</h3>
-        <p class="specialty-desc">Expert care for skin issues, acne, rashes, hair fall, scalp conditions, and allergies.</p>
-        <div class="specialty-price">Consultation fee: ₹349</div>
-        <a href="#" class="consult-btn">Consult Now</a>
-      </div>
-
-      <!-- Paediatrics -->
-      <div class="specialty-card">
-        <div class="specialty-icon">👶</div>
-        <h3 class="specialty-title">Paediatrics</h3>
-        <p class="specialty-desc">Comprehensive medical consultations for child health, growth, vaccination, and nutrition.</p>
-        <div class="specialty-price">Consultation fee: ₹299</div>
-        <a href="#" class="consult-btn">Consult Now</a>
-      </div>
-
-      <!-- Orthopaedics -->
-      <div class="specialty-card">
-        <div class="specialty-icon">🦴</div>
-        <h3 class="specialty-title">Orthopaedics</h3>
-        <p class="specialty-desc">Consultation for bone pain, muscle pain, joint issues, arthritis, and sports injuries.</p>
-        <div class="specialty-price">Consultation fee: ₹399</div>
-        <a href="#" class="consult-btn">Consult Now</a>
-      </div>
-
-      <!-- Psychiatry & Therapy -->
-      <div class="specialty-card">
-        <div class="specialty-icon">🧠</div>
-        <h3 class="specialty-title">Psychiatry & Mind Care</h3>
-        <p class="specialty-desc">Confidential consultation and support for anxiety, stress, depression, and mental wellness.</p>
-        <div class="specialty-price">Consultation fee: ₹499</div>
-        <a href="#" class="consult-btn">Consult Now</a>
-      </div>
-
-    </div>
-
-    <!-- How It Works Section -->
-    <div class="how-it-works">
-      <h2 class="section-title" style="margin-bottom: 10px;">How Online Consultation Works</h2>
-      <p style="color: var(--text-sub); font-size: 15px;">Get high-quality medical guidance in three simple steps.</p>
-      
-      <div class="steps-container">
-        <div class="step-card">
-          <div class="step-num">1</div>
-          <h3 class="step-title">Select a Speciality</h3>
-          <p class="step-desc">Choose the medical specialty or symptoms matching your health query.</p>
-        </div>
-        <div class="step-card">
-          <div class="step-num">2</div>
-          <h3 class="step-title">Make Payment</h3>
-          <p class="step-desc">Pay the consultation fee securely online via card, UPI, or wallets.</p>
-        </div>
-        <div class="step-card">
-          <div class="step-num">3</div>
-          <h3 class="step-title">Consult Doctor</h3>
-          <p class="step-desc">Connect with your assigned doctor via chat, audio, or video call within 10 minutes.</p>
-        </div>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- Footer -->
-  <footer>
-    <p>&copy; 2026 Keerthy Medical Stores Clone. Powered by Tata 1mg APIs.</p>
-  </footer>
-
-
+  // Inject client-side hydration and interaction scripts
+  const clientScript = `
   <script>
     (function() {
       // Initialize debug overlay
@@ -585,7 +96,7 @@
         const overlay = document.createElement('div');
         overlay.id = 'km-debug-overlay';
         overlay.style.cssText = 'position:fixed;bottom:45px;right:10px;background:rgba(15,23,42,0.95);color:#00ff00;font-family:monospace;font-size:11px;padding:12px;z-index:99999;border-radius:8px;width:300px;max-height:300px;overflow-y:auto;box-shadow:0 10px 25px rgba(0,0,0,0.5);border:1px solid #1b9c54;display:none;line-height:1.4;';
-        overlay.innerHTML = `<div style="font-weight:bold;color:#1b9c54;border-bottom:1px solid #334155;padding-bottom:6px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;"><span>KM Hydration Log</span><span style="color:#ef4444;cursor:pointer;padding:0 4px;" id="km-debug-close">[X]</span></div><div id="km-debug-logs"></div>`;
+        overlay.innerHTML = \`<div style="font-weight:bold;color:#1b9c54;border-bottom:1px solid #334155;padding-bottom:6px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;"><span>KM Hydration Log</span><span style="color:#ef4444;cursor:pointer;padding:0 4px;" id="km-debug-close">[X]</span></div><div id="km-debug-logs"></div>\`;
         
         document.body.appendChild(trigger);
         document.body.appendChild(overlay);
@@ -649,7 +160,7 @@
                 if (val && typeof val === 'string') {
                   urlMap[val] = imgUrl;
                   // Add clean segments for partial matching
-                  let clean = val.replace(/\/$/, '');
+                  let clean = val.replace(/\\/$/, '');
                   urlMap[clean] = imgUrl;
                   const parts = clean.split('/');
                   if (parts.length > 0) {
@@ -722,7 +233,7 @@
               if (anchor) {
                 const href = anchor.getAttribute('href');
                 if (href) {
-                  let cleanHref = href.replace(/\/$/, '');
+                  let cleanHref = href.replace(/\\/$/, '');
                   const pathSegments = cleanHref.split('/');
                   const lastSegment = pathSegments[pathSegments.length - 1];
                   foundUrl = urlMap[href] || urlMap[cleanHref] || urlMap[lastSegment];
@@ -910,7 +421,7 @@
               if (!document.getElementById('km-global-dropdown-style')) {
                 const style = document.createElement('style');
                 style.id = 'km-global-dropdown-style';
-                style.textContent = `
+                style.textContent = \`
                   .km-profile-container { position: relative; display: flex; align-items: center; }
                   .km-profile-trigger { display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 6px 12px; border-radius: 8px; transition: background-color 0.2s ease; user-select: none; }
                   .km-profile-trigger:hover { background-color: #f1f5f9; }
@@ -923,11 +434,11 @@
                   .km-dropdown-item:hover { background-color: #f8fafc; color: #1b9c54; }
                   .km-dropdown-item-logout { border-top: 1px solid #f1f5f9; color: #ef4444; }
                   .km-dropdown-item-logout:hover { background-color: #fef2f2; color: #dc2626; }
-                `;
+                \`;
                 document.head.appendChild(style);
               }
               
-              targetParent.innerHTML = `
+              targetParent.innerHTML = \`
                 <div class="km-profile-container" id="kmProfileContainer">
                   <div class="km-profile-trigger" id="kmProfileTrigger">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1b9c54" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
@@ -937,7 +448,7 @@
                   <div class="km-profile-dropdown" id="kmProfileDropdown">
                     <div class="km-dropdown-header">
                       <div class="km-dropdown-user-name">Udaykumar Jewoor</div>
-                      <div class="km-dropdown-user-phone">+91 \${phone.slice(0,5)} \${phone.slice(5)}</div>
+                      <div class="km-dropdown-user-phone">+91 \\\${phone.slice(0,5)} \\\${phone.slice(5)}</div>
                     </div>
                     <a href="/orders" class="km-dropdown-item">
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
@@ -957,7 +468,7 @@
                     </div>
                   </div>
                 </div>
-              `;
+              \`;
               
               // Wire up logout button
               document.getElementById('kmLogoutBtn').addEventListener('click', () => {
@@ -1002,8 +513,76 @@
       setTimeout(runAll, 3000);
     })();
   </script>
-  
+  `;
 
+  if (modified.includes('</body>')) {
+    modified = modified.replace('</body>', `${clientScript}\n</body>`);
+  } else {
+    modified += clientScript;
+  }
+
+  // Force logo replacement in CSS style
+  const styleToInject = `
+  <style>
+    /* Force our logo on the main header logo elements */
+    [class*="Header__logo__"],
+    .Header__logoFallback___SCxk,
+    img[src*="tata_1mg_logo"],
+    img[src*="1mg-logo"],
+    img[src*="image.png"],
+    .DioRxProcessing__logo__NQ6Ju,
+    .PackageCard__labLogo__t4Tk5,
+    [class*="FooterSection__"] img[width="124px"][height="36px"],
+    [class*="Footer__"] img[width="124px"][height="36px"],
+    .footer img[width="124px"][height="36px"] {
+      content: url('/image.png') !important;
+      opacity: 1 !important;
+      visibility: visible !important;
+      width: 100% !important;
+      height: auto !important;
+      max-width: 124px !important;
+      max-height: 36px !important;
+      object-fit: contain !important;
+    }
+    
+    /* Force background images if any */
+    .logo-container a, 
+    .logo-container img {
+      background-image: url('/image.png') !important;
+    }
+
+    /* Hide or replace TATA digital logo/branding in header if any */
+    img[src*="tata_logo"],
+    img[src*="tata-logo"],
+    img[src*="tatadigital"],
+    .tata-logo,
+    [class*="tata-logo"],
+    [class*="TataLogo"],
+    [class*="tataLogo"],
+    [class*="header_logo_horizontal"] {
+      display: none !important;
+    }
+
+    /* Force green color on buttons that use the coral gradient */
+    [class*="PrimaryButton__coralGradient__"],
+    [class*="PrimaryButton__coralGradientBright__"] {
+      background: linear-gradient(91.23deg, #1b9c54 0%, #157e43 100%) !important;
+    }
+    [class*="PrimaryButton__coralOutlined__"] {
+      color: #1b9c54 !important;
+      border-color: #1b9c54 !important;
+    }
+  </style>
+  `;
+
+  if (modified.includes('</head>')) {
+    modified = modified.replace('</head>', `${styleToInject}\n</head>`);
+  } else {
+    modified += styleToInject;
+  }
+
+  // Inject click interceptor script
+  const scriptToInject = `
   <script>
     (function() {
       document.addEventListener('click', function(e) {
@@ -1046,7 +625,39 @@
       }, true);
     })();
   </script>
-  
-</body>
+  `;
+  if (modified.includes('</body>')) {
+    modified = modified.replace('</body>', `${scriptToInject}\n</body>`);
+  } else {
+    modified += scriptToInject;
+  }
 
-</html>
+  return rebrand(modified);
+}
+
+// Recursive directory pre-processor for local files on disk
+function preProcessDirectory(dir) {
+  const files = fs.readdirSync(dir);
+  
+  files.forEach(file => {
+    const filePath = path.join(dir, file);
+    const stat = fs.statSync(filePath);
+    
+    // Exclude system/dependency folders and login
+    if (stat.isDirectory()) {
+      if (file !== 'node_modules' && file !== '.git' && file !== '.next' && file !== 'scratch' && file !== 'login') {
+        preProcessDirectory(filePath);
+      }
+    } else if (file.endsWith('.html')) {
+      console.log(`Pre-processing HTML file on disk: ${filePath}`);
+      const rawHtml = fs.readFileSync(filePath, 'utf8');
+      const processedHtml = modifyHtml(rawHtml, '/' + path.relative(__dirname, filePath).replace(/\\/g, '/'));
+      fs.writeFileSync(filePath, processedHtml, 'utf8');
+    }
+  });
+}
+
+// Run pre-processor on start to ensure static files on disk are fully rebranded and hydrated
+console.log('Running static HTML pre-processor for all files on disk...');
+preProcessDirectory(path.join(__dirname, '..'));
+console.log('Static HTML pre-processing complete!');
