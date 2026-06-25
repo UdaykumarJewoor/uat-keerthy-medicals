@@ -1,413 +1,68 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Shopping Cart | Tata 1mg Clone</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --primary: #1b9c54;
-      --primary-hover: #157e43;
-      --text-main: #212121;
-      --text-sub: #666666;
-      --bg-light: #f8f9fa;
-      --border-color: #e0e0e0;
-      --shadow-sm: 0 2px 4px rgba(0,0,0,0.05);
-      --shadow-md: 0 4px 12px rgba(0,0,0,0.08);
-      --transition: all 0.2s ease-in-out;
-    }
+const fs = require('fs');
+const path = require('path');
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      font-family: 'Outfit', sans-serif;
-      color: var(--text-main);
-      background-color: var(--bg-light);
-      line-height: 1.5;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
-
-    /* Header Styles */
-    header {
-      background: #ffffff;
-      border-bottom: 1px solid var(--border-color);
-      position: sticky;
-      top: 0;
-      z-index: 1000;
-    }
-
-    .header-container {
-      max-width: 1200px;
-      margin: 0 auto;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 12px 20px;
-    }
-
-    .brand-logo {
-      text-decoration: none;
-      display: flex;
-      align-items: center;
-      font-size: 22px;
-      font-weight: 800;
-      letter-spacing: -0.5px;
-    }
-
-    .brand-logo .tata {
-      color: #212121;
-      margin-right: 4px;
-    }
-
-    .brand-logo .one-mg {
-      color: #212121;
-      position: relative;
-      padding-bottom: 2px;
-    }
-
-    .brand-logo .one-mg .underline {
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      width: 100%;
-      height: 3px;
-      background-color: var(--primary);
-    }
-
-    nav {
-      display: flex;
-      align-items: center;
-      gap: 20px;
-    }
-
-    nav a {
-      text-decoration: none;
-      color: var(--text-main);
-      font-size: 13px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.2px;
-      padding: 6px 0;
-      border-bottom: 2px solid transparent;
-      transition: var(--transition);
-    }
-
-    nav a:hover {
-      color: var(--primary);
-    }
-
-    .right-menu {
-      display: flex;
-      align-items: center;
-      gap: 20px;
-    }
-
-    .right-menu a {
-      text-decoration: none;
-      color: var(--text-main);
-      font-size: 14px;
-      font-weight: 500;
-      transition: var(--transition);
-    }
-
-    .right-menu a:hover {
-      color: var(--primary);
-    }
-
-    .right-menu .cart-icon {
-      display: flex;
-      align-items: center;
-      position: relative;
-    }
-
-    .right-menu .cart-icon.active {
-      color: var(--primary);
-    }
-
-    /* Main Container */
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 40px 20px;
-      width: 100%;
-      flex: 1;
-    }
-
-    .cart-title-section {
-      margin-bottom: 24px;
-    }
-
-    .cart-title-section h1 {
-      font-size: 28px;
-      font-weight: 800;
-      color: #1a1a1a;
-    }
-
-    /* Developer Box */
-    .dev-notice {
-      background: #f0f7ff;
-      border: 1px solid #cce3ff;
-      border-radius: 12px;
-      padding: 20px;
-      margin-bottom: 30px;
-      display: flex;
-      align-items: flex-start;
-      gap: 16px;
-    }
-
-    .dev-icon {
-      background: #0066cc;
-      color: white;
-      width: 32px;
-      height: 32px;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: bold;
-      flex-shrink: 0;
-    }
-
-    .dev-content h3 {
-      font-size: 16px;
-      font-weight: 700;
-      color: #004488;
-      margin-bottom: 4px;
-    }
-
-    .dev-content p {
-      font-size: 14px;
-      color: #335577;
-    }
-
-    /* Cart Layout */
-    .cart-layout {
-      display: grid;
-      grid-template-columns: 1fr 380px;
-      gap: 30px;
-    }
-
-    @media (max-width: 900px) {
-      .cart-layout {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    /* Left Panel: Items */
-    .cart-items-panel {
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-    }
-
-    .cart-item-card {
-      background: white;
-      border: 1px solid var(--border-color);
-      border-radius: 12px;
-      padding: 20px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 20px;
-      transition: var(--transition);
-    }
-
-    .cart-item-card:hover {
-      box-shadow: var(--shadow-sm);
-    }
-
-    .item-details {
-      display: flex;
-      align-items: center;
-      gap: 16px;
-    }
-
-    .item-avatar {
-      background: var(--bg-light);
-      width: 60px;
-      height: 60px;
-      border-radius: 8px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 28px;
-    }
-
-    .item-info h3 {
-      font-size: 16px;
-      font-weight: 700;
-      color: #1a1a1a;
-      margin-bottom: 4px;
-    }
-
-    .item-info p {
-      font-size: 13px;
-      color: var(--text-sub);
-    }
-
-    .item-pricing-actions {
-      display: flex;
-      align-items: center;
-      gap: 30px;
-    }
-
-    .item-quantity {
-      display: flex;
-      align-items: center;
-      border: 1px solid var(--border-color);
-      border-radius: 6px;
-      overflow: hidden;
-    }
-
-    .qty-btn {
-      background: white;
-      border: none;
-      width: 32px;
-      height: 32px;
-      font-size: 16px;
-      font-weight: 700;
-      cursor: pointer;
-      color: var(--text-main);
-      transition: var(--transition);
-    }
-
-    .qty-btn:hover {
-      background: var(--bg-light);
-    }
-
-    .qty-value {
-      width: 32px;
-      text-align: center;
-      font-weight: 600;
-      font-size: 14px;
-    }
-
-    .item-price {
-      text-align: right;
-    }
-
-    .price-current {
-      font-size: 16px;
-      font-weight: 700;
-      color: #1a1a1a;
-    }
-
-    .price-original {
-      font-size: 13px;
-      color: var(--text-sub);
-      text-decoration: line-through;
-    }
-
-    .remove-btn {
-      background: none;
-      border: none;
-      color: #e11d48;
-      cursor: pointer;
-      font-size: 13px;
-      font-weight: 600;
-      transition: var(--transition);
-    }
-
-    .remove-btn:hover {
-      text-decoration: underline;
-    }
-
-    /* Right Panel: Summary */
-    .cart-summary-panel {
-      background: white;
-      border: 1px solid var(--border-color);
-      border-radius: 12px;
-      padding: 24px;
-      align-self: flex-start;
-      position: sticky;
-      top: 90px;
-    }
-
-    .summary-title {
-      font-size: 18px;
-      font-weight: 700;
-      margin-bottom: 20px;
-      color: #1a1a1a;
-      border-bottom: 1px solid var(--border-color);
-      padding-bottom: 12px;
-    }
-
-    .summary-row {
-      display: flex;
-      justify-content: space-between;
-      font-size: 14px;
-      margin-bottom: 12px;
-      color: var(--text-main);
-    }
-
-    .summary-row.discount {
-      color: #22c55e;
-      font-weight: 600;
-    }
-
-    .summary-row.total {
-      font-size: 18px;
-      font-weight: 800;
-      color: #1a1a1a;
-      border-top: 1px solid var(--border-color);
-      padding-top: 16px;
-      margin-top: 16px;
-      margin-bottom: 24px;
-    }
-
-    .checkout-btn {
-      width: 100%;
-      background: var(--primary);
-      color: white;
-      border: none;
-      padding: 14px;
-      border-radius: 8px;
-      font-weight: 700;
-      font-size: 16px;
-      cursor: pointer;
-      transition: var(--transition);
-      text-align: center;
-      text-decoration: none;
-      display: block;
-    }
-
-    .checkout-btn:hover {
-      background: var(--primary-hover);
-    }
-
-    /* Footer */
-    footer {
-      background: #ffffff;
-      border-top: 1px solid var(--border-color);
-      padding: 30px 20px;
-      text-align: center;
-      font-size: 14px;
-      color: var(--text-sub);
-      margin-top: 60px;
-    }
-  </style>
-
+// Rebrand color helper
+function rebrand(text) {
+  if (typeof text !== 'string') return text;
+  let rebranded = text;
   
+  // Primary brand color replacements (Orange to Green)
+  rebranded = rebranded.replace(/#ff6f61/gi, '#1b9c54');
+  rebranded = rebranded.replace(/#ff5443/gi, '#1b9c54');
+  rebranded = rebranded.replace(/#e55e51/gi, '#157e43');
+  rebranded = rebranded.replace(/rgb\(\s*255\s*,\s*111\s*,\s*97\s*\)/gi, 'rgb(27, 156, 84)');
+  rebranded = rebranded.replace(/255\s*,\s*111\s*,\s*97/g, '27, 156, 84');
   
+  // Custom button gradients and colors (orange/pink/coral) used in partnerships page
+  rebranded = rebranded.replace(/#eb5b26/gi, '#1b9c54');
+  rebranded = rebranded.replace(/#e4336f/gi, '#157e43');
+  rebranded = rebranded.replace(/rgba\(\s*235\s*,\s*91\s*,\s*38\s*,\s*([\d.]+)\)/gi, 'rgba(27, 156, 84, $1)');
+  rebranded = rebranded.replace(/rgba\(\s*228\s*,\s*51\s*,\s*111\s*,\s*([\d.]+)\)/gi, 'rgba(21, 126, 67, $1)');
+  rebranded = rebranded.replace(/235\s*,\s*91\s*,\s*38/g, '27, 156, 84');
+  rebranded = rebranded.replace(/228\s*,\s*51\s*,\s*111/g, '21, 126, 67');
+  
+  return rebranded;
+}
 
-    
+// modifyHtml helper with relative paths for domain-agnostic static serving
+function modifyHtml(html) {
+  let cleaned = html;
   
+  // --- CLEAN UP PREVIOUS INJECTIONS ---
+  // Remove any previously injected style overrides (both standard and logo overrides)
+  cleaned = cleaned.replace(/<style>\s*\/\* Force our logo[\s\S]*?<\/style>/gi, '');
+  cleaned = cleaned.replace(/<style>\s*\[style\*="opacity:0"][\s\S]*?<\/style>/gi, '');
+  
+  // Remove any previously injected script blocks (hydrators, tab switchers, click interceptors)
+  cleaned = cleaned.replace(/<script>\s*\(function\(\)\s*\{\s*\/\/ 1\. Recursive Image Hydration[\s\S]*?<\/script>/gi, '');
+  cleaned = cleaned.replace(/<script>\s*\(function\(\)\s*\{\s*document\.addEventListener\('click'[\s\S]*?<\/script>/gi, '');
+  
+  // Clean up any double/triple script wrappers that might have accumulated
+  cleaned = cleaned.replace(/<script type="text\/blocked" type="text\/blocked"/g, 'type="text/blocked"');
+  
+  let modified = cleaned;
+  
+  // Replace absolute and relative logo URLs with /image.png
+  modified = modified.replace(/https?:\/\/(?:assets|www|images)\.1mg\.com\/[^\s"'`>]*tata_1mg_logo\.(?:svg|png|jpg|jpeg|gif)/gi, '/image.png');
+  modified = modified.replace(/https?:\/\/(?:assets|www|images)\.1mg\.com\/[^\s"'`>]*1mg-logo-large\.(?:svg|png|jpg|jpeg|gif)/gi, '/image.png');
+  modified = modified.replace(/\/images\/tata_1mg_logo\.svg/g, '/image.png');
 
-  
-  
+  // Replace references to assets.1mg.com with local relative assets_proxy
+  modified = modified.replace(/https?:\/\/assets\.1mg\.com/g, '/assets_proxy');
+  modified = modified.replace(/\/\/assets\.1mg\.com/g, '/assets_proxy');
 
-    
-  
+  // Replace absolute references to the live site with relative paths
+  modified = modified.replace(/https?:\/\/www\.1mg\.com/g, '');
+  modified = modified.replace(/https?:\/\/1mg\.com/g, '');
 
+  // Block the React scripts globally to prevent hydration errors and page rendering/opacity issues
+  // Avoid duplicating the block if already blocked
+  modified = modified.replace(/<script(?! type="text\/blocked") async data-chunk=/g, '<script type="text/blocked" async data-chunk=');
+  modified = modified.replace(/<script(?! type="text\/blocked") id="__LOADABLE_REQUIRED_CHUNKS__"/g, '<script id="__LOADABLE_REQUIRED_CHUNKS__" type="text/blocked"');
+  modified = modified.replace(/<script(?! type="text\/blocked") id="__LOADABLE_REQUIRED_CHUNKS___ext"/g, '<script id="__LOADABLE_REQUIRED_CHUNKS___ext" type="text/blocked"');
+
+  // Inject opacity override styles specifically to bypass animation opacity 0 and pre-hydration hidden states
+  const overrideStyles = `
   <style>
     /* Override hidden/opacity-0 states from unhydrated React widgets */
     [style*="opacity:0"],
@@ -425,200 +80,15 @@
       transition: none !important;
     }
   </style>
-  
+  `;
+  if (modified.includes('</head>')) {
+    modified = modified.replace('</head>', `${overrideStyles}\n</head>`);
+  } else {
+    modified += overrideStyles;
+  }
 
-  <style>
-    /* Force our logo on the main header logo elements */
-    [class*="Header__logo__"],
-    .Header__logoFallback___SCxk,
-    img[src*="tata_1mg_logo"],
-    img[src*="1mg-logo"],
-    img[src*="image.png"],
-    .DioRxProcessing__logo__NQ6Ju,
-    .PackageCard__labLogo__t4Tk5,
-    [class*="FooterSection__"] img[width="124px"][height="36px"],
-    [class*="Footer__"] img[width="124px"][height="36px"],
-    .footer img[width="124px"][height="36px"] {
-      content: url('/image.png') !important;
-      opacity: 1 !important;
-      visibility: visible !important;
-      width: 100% !important;
-      height: auto !important;
-      max-width: 124px !important;
-      max-height: 36px !important;
-      object-fit: contain !important;
-    }
-    
-    /* Force background images if any */
-    .logo-container a, 
-    .logo-container img {
-      background-image: url('/image.png') !important;
-    }
-
-    /* Hide or replace TATA digital logo/branding in header if any */
-    img[src*="tata_logo"],
-    img[src*="tata-logo"],
-    img[src*="tatadigital"],
-    .tata-logo,
-    [class*="tata-logo"],
-    [class*="TataLogo"],
-    [class*="tataLogo"],
-    [class*="header_logo_horizontal"] {
-      display: none !important;
-    }
-
-    /* Force green color on buttons that use the coral gradient */
-    [class*="PrimaryButton__coralGradient__"],
-    [class*="PrimaryButton__coralGradientBright__"] {
-      background: linear-gradient(91.23deg, #1b9c54 0%, #157e43 100%) !important;
-    }
-    [class*="PrimaryButton__coralOutlined__"] {
-      color: #1b9c54 !important;
-      border-color: #1b9c54 !important;
-    }
-  </style>
-  
-</head>
-<body>
-
-  <!-- Navigation Header -->
-  <header>
-    <div class="header-container">
-      <a href="/" class="brand-logo">
-        <img src="/image.png" alt="Keerthy Medical Stores" style="max-height: 36px; width: auto; object-fit: contain;">
-      </a>
-      <nav>
-        <a href="/">Medicines</a>
-        <a href="/labs/">Lab Tests</a>
-        <a href="/online-doctor-consultation/">Consult Doctors</a>
-        <a href="/cancer-care/">Cancer Care</a>
-        <a href="/ayurveda/">Ayurveda</a>
-        <a href="/partnerships/">Partnerships</a>
-        <a href="/corporates/">Corporates</a>
-        <a href="/subscription-plan/">Care Plan</a>
-      </nav>
-      <div class="right-menu">
-        <a href="/login/">Login | Signup</a>
-        <a href="/offers/">Offers</a>
-        <a href="/cart/" class="cart-icon active">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
-        </a>
-        <a href="/help/">Need Help?</a>
-      </div>
-    </div>
-  </header>
-
-  <!-- Main Content -->
-  <div class="container">
-    <div class="cart-title-section">
-      <h1>Shopping Cart</h1>
-    </div>
-
-    <!-- Developer Notice -->
-    <div class="dev-notice">
-      <div class="dev-icon">&lt;/&gt;</div>
-      <div class="dev-content">
-        <h3>Local Directory Placeholder</h3>
-        <p>This page is served locally from <code>/cart/index.html</code>. You can now edit this file and add your own code, state management (like localStorage cart), dynamic item additions, and checkout gateway integrations.</p>
-      </div>
-    </div>
-
-    <div class="cart-layout">
-      <!-- Left Panel: Cart Items -->
-      <div class="cart-items-panel">
-        <!-- Cart Item 1 -->
-        <div class="cart-item-card">
-          <div class="item-details">
-            <div class="item-avatar">🌿</div>
-            <div class="item-info">
-              <h3>Dabur Chyawanprash</h3>
-              <p>Double Immunity, 1 kg bottle</p>
-              <button class="remove-btn" onclick="alert('Item removed');">Remove</button>
-            </div>
-          </div>
-          <div class="item-pricing-actions">
-            <div class="item-quantity">
-              <button class="qty-btn" onclick="alert('Decreased quantity');">-</button>
-              <div class="qty-value">1</div>
-              <button class="qty-btn" onclick="alert('Increased quantity');">+</button>
-            </div>
-            <div class="item-price">
-              <div class="price-current">₹375</div>
-              <div class="price-original">₹425</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Cart Item 2 -->
-        <div class="cart-item-card">
-          <div class="item-details">
-            <div class="item-avatar">🩺</div>
-            <div class="item-info">
-              <h3>Comprehensive Gold Full Body Checkup</h3>
-              <p>Diagnostic health package, 1 Patient</p>
-              <button class="remove-btn" onclick="alert('Item removed');">Remove</button>
-            </div>
-          </div>
-          <div class="item-pricing-actions">
-            <div class="item-quantity">
-              <button class="qty-btn" onclick="alert('Decreased quantity');">-</button>
-              <div class="qty-value">1</div>
-              <button class="qty-btn" onclick="alert('Increased quantity');">+</button>
-            </div>
-            <div class="item-price">
-              <div class="price-current">₹999</div>
-              <div class="price-original">₹1999</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Right Panel: Summary -->
-      <div class="cart-summary-panel">
-        <h2 class="summary-title">Order Summary</h2>
-        <div class="summary-row">
-          <span>Items Total (MRP)</span>
-          <span>₹2,424</span>
-        </div>
-        <div class="summary-row discount">
-          <span>Price Discount</span>
-          <span>- ₹1,050</span>
-        </div>
-        <div class="summary-row">
-          <span>Shipping Fee</span>
-          <span style="color: #22c55e; font-weight: 600;">FREE</span>
-        </div>
-        <div class="summary-row">
-          <span>Care Plan Membership</span>
-          <span>₹0</span>
-        </div>
-        <div class="summary-row total">
-          <span>Total Amount</span>
-          <span>₹1,374</span>
-        </div>
-        <button class="checkout-btn" onclick="alert('Checkout Initiated!');">Proceed to Checkout</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Footer -->
-  <footer>
-    <p>&copy; 2026 Tata 1mg Clone. All rights reserved. Built for local development.</p>
-  </footer>
-
-
-  
-  
-
-  
-  
-
-  
-  
-
-  
-  
-
+  // Inject client-side hydration and interaction scripts
+  const clientScript = `
   <script>
     (function() {
       // 1. Recursive Image Hydration
@@ -658,7 +128,7 @@
                 if (val && typeof val === 'string') {
                   urlMap[val] = imgUrl;
                   // Add clean segments for partial matching
-                  let clean = val.replace(//$/, '');
+                  let clean = val.replace(/\/$/, '');
                   urlMap[clean] = imgUrl;
                   const parts = clean.split('/');
                   if (parts.length > 0) {
@@ -714,7 +184,7 @@
               if (anchor) {
                 const href = anchor.getAttribute('href');
                 if (href) {
-                  let cleanHref = href.replace(//$/, '');
+                  let cleanHref = href.replace(/\/$/, '');
                   const pathSegments = cleanHref.split('/');
                   const lastSegment = pathSegments[pathSegments.length - 1];
                   foundUrl = urlMap[href] || urlMap[cleanHref] || urlMap[lastSegment];
@@ -878,7 +348,7 @@
               if (!document.getElementById('km-global-dropdown-style')) {
                 const style = document.createElement('style');
                 style.id = 'km-global-dropdown-style';
-                style.textContent = `
+                style.textContent = \`
                   .km-profile-container { position: relative; display: flex; align-items: center; }
                   .km-profile-trigger { display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 6px 12px; border-radius: 8px; transition: background-color 0.2s ease; user-select: none; }
                   .km-profile-trigger:hover { background-color: #f1f5f9; }
@@ -891,11 +361,11 @@
                   .km-dropdown-item:hover { background-color: #f8fafc; color: #1b9c54; }
                   .km-dropdown-item-logout { border-top: 1px solid #f1f5f9; color: #ef4444; }
                   .km-dropdown-item-logout:hover { background-color: #fef2f2; color: #dc2626; }
-                `;
+                \`;
                 document.head.appendChild(style);
               }
               
-              targetParent.innerHTML = `
+              targetParent.innerHTML = \`
                 <div class="km-profile-container" id="kmProfileContainer">
                   <div class="km-profile-trigger" id="kmProfileTrigger">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1b9c54" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
@@ -905,7 +375,7 @@
                   <div class="km-profile-dropdown" id="kmProfileDropdown">
                     <div class="km-dropdown-header">
                       <div class="km-dropdown-user-name">Udaykumar Jewoor</div>
-                      <div class="km-dropdown-user-phone">+91 \${phone.slice(0,5)} \${phone.slice(5)}</div>
+                      <div class="km-dropdown-user-phone">+91 \\\${phone.slice(0,5)} \\\${phone.slice(5)}</div>
                     </div>
                     <a href="/orders" class="km-dropdown-item">
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
@@ -925,7 +395,7 @@
                     </div>
                   </div>
                 </div>
-              `;
+              \`;
               
               // Wire up logout button
               document.getElementById('kmLogoutBtn').addEventListener('click', () => {
@@ -970,8 +440,76 @@
       setTimeout(runAll, 3000);
     })();
   </script>
-  
+  `;
 
+  if (modified.includes('</body>')) {
+    modified = modified.replace('</body>', `${clientScript}\n</body>`);
+  } else {
+    modified += clientScript;
+  }
+
+  // Force logo replacement in CSS style
+  const styleToInject = `
+  <style>
+    /* Force our logo on the main header logo elements */
+    [class*="Header__logo__"],
+    .Header__logoFallback___SCxk,
+    img[src*="tata_1mg_logo"],
+    img[src*="1mg-logo"],
+    img[src*="image.png"],
+    .DioRxProcessing__logo__NQ6Ju,
+    .PackageCard__labLogo__t4Tk5,
+    [class*="FooterSection__"] img[width="124px"][height="36px"],
+    [class*="Footer__"] img[width="124px"][height="36px"],
+    .footer img[width="124px"][height="36px"] {
+      content: url('/image.png') !important;
+      opacity: 1 !important;
+      visibility: visible !important;
+      width: 100% !important;
+      height: auto !important;
+      max-width: 124px !important;
+      max-height: 36px !important;
+      object-fit: contain !important;
+    }
+    
+    /* Force background images if any */
+    .logo-container a, 
+    .logo-container img {
+      background-image: url('/image.png') !important;
+    }
+
+    /* Hide or replace TATA digital logo/branding in header if any */
+    img[src*="tata_logo"],
+    img[src*="tata-logo"],
+    img[src*="tatadigital"],
+    .tata-logo,
+    [class*="tata-logo"],
+    [class*="TataLogo"],
+    [class*="tataLogo"],
+    [class*="header_logo_horizontal"] {
+      display: none !important;
+    }
+
+    /* Force green color on buttons that use the coral gradient */
+    [class*="PrimaryButton__coralGradient__"],
+    [class*="PrimaryButton__coralGradientBright__"] {
+      background: linear-gradient(91.23deg, #1b9c54 0%, #157e43 100%) !important;
+    }
+    [class*="PrimaryButton__coralOutlined__"] {
+      color: #1b9c54 !important;
+      border-color: #1b9c54 !important;
+    }
+  </style>
+  `;
+
+  if (modified.includes('</head>')) {
+    modified = modified.replace('</head>', `${styleToInject}\n</head>`);
+  } else {
+    modified += styleToInject;
+  }
+
+  // Inject click interceptor script
+  const scriptToInject = `
   <script>
     (function() {
       document.addEventListener('click', function(e) {
@@ -1014,8 +552,44 @@
       }, true);
     })();
   </script>
-  
-</body>
-</html>
+  `;
+  if (modified.includes('</body>')) {
+    modified = modified.replace('</body>', `${scriptToInject}\n</body>`);
+  } else {
+    modified += scriptToInject;
+  }
 
-        
+  return rebrand(modified);
+}
+
+// Main execution function
+function processDirectory(dir) {
+  const files = fs.readdirSync(dir);
+  
+  files.forEach(file => {
+    const filePath = path.join(dir, file);
+    const stat = fs.statSync(filePath);
+    
+    if (stat.isDirectory()) {
+      // Exclude public/login which is our custom login page
+      if (file !== 'login') {
+        processDirectory(filePath);
+      }
+    } else if (file.endsWith('.html')) {
+      console.log(`Processing: ${filePath}`);
+      const rawHtml = fs.readFileSync(filePath, 'utf8');
+      
+      // Apply transformations
+      const processedHtml = modifyHtml(rawHtml);
+      
+      // Save back
+      fs.writeFileSync(filePath, processedHtml, 'utf8');
+    }
+  });
+}
+
+// Target directory is c:/Projects/hg/1mg.com/public
+const publicDir = 'c:/Projects/hg/1mg.com/public';
+console.log(`Starting static HTML pre-processing in: ${publicDir}`);
+processDirectory(publicDir);
+console.log('Static HTML pre-processing complete!');

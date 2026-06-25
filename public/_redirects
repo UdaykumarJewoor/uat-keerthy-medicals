@@ -1,0 +1,7 @@
+# Proxy assets_proxy requests to assets.1mg.com
+/assets_proxy/*  https://assets.1mg.com/:splat  200
+
+# Proxy API and PWA requests to www.1mg.com
+/api/*  https://www.1mg.com/api/:splat  200
+/pwa-dweb-api/*  https://www.1mg.com/pwa-dweb-api/:splat  200
+/pwa-api/*  https://www.1mg.com/pwa-api/:splat  200
