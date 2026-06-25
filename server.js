@@ -71,6 +71,137 @@ function modifyHtml(html, url) {
   modified = modified.replace(/<script(?! type="text\/blocked") id="__LOADABLE_REQUIRED_CHUNKS__"/g, '<script id="__LOADABLE_REQUIRED_CHUNKS__" type="text/blocked"');
   modified = modified.replace(/<script(?! type="text\/blocked") id="__LOADABLE_REQUIRED_CHUNKS___ext"/g, '<script id="__LOADABLE_REQUIRED_CHUNKS___ext" type="text/blocked"');
 
+  // Replace the unhydrated category tree shimmer with our custom category dropdown row
+  const categoryDropdownHtml = `
+    <div class="header_third_row">
+      <div class="drop_down">All Medicines <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          <div class="drop_down_content">
+          <ul class="dropdown_first_heading" style="list-style-type:none">Medicine by therapeutic class</ul>
+          </div>
+      </div>
+      <div class="drop_down">Winter care <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          <div class="drop_down_content">
+          <ul class="dropdown_first_heading" style="list-style-type:none">Body & Skin Care</ul>
+          <ul class="dropdown_first_heading" style="list-style-type:none">Hair & Scalp Care</ul>
+          <ul class="dropdown_first_heading" style="list-style-type:none">Cough & Cold</ul>
+          <ul class="dropdown_first_heading" style="list-style-type:none">Fever & Headache</ul>
+          <ul class="dropdown_first_heading" style="list-style-type:none">Vaporizer & Nebulizer</ul>
+          <ul class="dropdown_first_heading" style="list-style-type:none">Heating Aid</ul>
+          <ul class="dropdown_first_heading" style="list-style-type:none">Winter Combos</ul>
+          </div>
+      </div>
+      <div class="drop_down">Featured <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          <div class="drop_down_content">
+          <div class="dropdown_first_heading">Tata 1mg Health Products</div>
+          <ul class="dropdown_first_heading" style="list-style-type:none">Trending Products</ul>
+          <ul class="dropdown_first_heading" style="list-style-type:none">Explorer Something New</ul>
+          <ul class="dropdown_first_heading" style="list-style-type:none">Buy More, Save More</ul>
+          <ul class="dropdown_first_heading" style="list-style-type:none">Vacations</ul>
+          <ul class="dropdown_first_heading" style="list-style-type:none">Min 33% Off</ul>
+          <ul class="dropdown_first_heading" style="list-style-type:none">Combos</ul>
+          <ul class="dropdown_first_heading" style="list-style-type:none">Deal Of The Day</ul>
+          <ul class="dropdown_first_heading" style="list-style-type:none">Top Brands
+              <li class="dropdown_second_heading">GOQii</li>
+              <li class="dropdown_second_heading">Organic India</li>
+              <li class="dropdown_second_heading">Accu-check</li>
+              <li class="dropdown_second_heading">Dr. Morepen</li>
+              <li class="dropdown_second_heading">Himalaya Products</li>
+              <li class="dropdown_second_heading">Abbott Nutrition</li>
+          </ul>
+          </div>
+      </div>
+      <div class="drop_down">Covid Essentials <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          <div class="drop_down_content">
+          <ul class="dropdown_first_heading" style="list-style-type:none">Boost Your Immunity</ul>
+          <ul class="dropdown_first_heading" style="list-style-type:none">Chyawanprash</ul>
+          <ul class="dropdown_first_heading" style="list-style-type:none">Sanitizer & Hand Wash</ul>
+          <ul class="dropdown_first_heading" style="list-style-type:none">Mask</ul>
+          <ul class="dropdown_first_heading" style="list-style-type:none">Thermometer</ul>
+          </div>
+      </div>
+      <div class="drop_down">Fitness & Supplements <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          <div class="drop_down_content">
+              <ul class="dropdown_first_heading" style="list-style-type:none">
+                  Vitamins & Supplements
+                  <li class="dropdown_second_heading" onclick="window.location.href = '/multivitamins.html'">Multivitamins</li>
+                  <li class="dropdown_second_heading" onclick="window.location.href = '/vitamins_A-Z.html'">Vitamins A-Z</li>
+                  <li class="dropdown_second_heading" onclick="window.location.href = '/MineralSupplements.html'">Mineral Supplements</li>
+              </ul>
+              <ul class="dropdown_first_heading" style="list-style-type:none">
+                   Nutritional Drinks 
+                  <li class="dropdown_second_heading">Adult Daily Nutrition</li>
+                  <li class="dropdown_second_heading">Kid Nutrition</li>
+                  <li class="dropdown_second_heading">For Women</li>
+              </ul>
+              <ul class="dropdown_first_heading" style="list-style-type:none">
+                  Health food & Drinks
+                  <li class="dropdown_second_heading">Green Tea & Herbal Tea</li>
+              </ul>
+              <ul class="dropdown_first_heading" style="list-style-type:none">
+                  Protein Supplements
+                  <li class="dropdown_second_heading">Whey Protein</li>
+                  <li class="dropdown_second_heading">Amino Acid</li>
+                  <li class="dropdown_second_heading">Mass Gainer</li>
+                  <li class="dropdown_second_heading">Workout Essential</li>
+                  <li class="dropdown_second_heading">Fat Burner</li>
+              </ul>
+              <ul class="dropdown_first_heading" style="list-style-type:none">
+                   Omega & Fish oil
+                  <li class="dropdown_second_heading">Fish Oil</li>
+                  <li class="dropdown_second_heading">Cod Liver Oil</li>
+                  <li class="dropdown_second_heading">Flax Seed Oil</li>
+              </ul>
+              <ul class="dropdown_first_heading" style="list-style-type:none">
+                  Speciality Supplements
+                  <li class="dropdown_second_heading">Green Supplements</li>
+                  <li class="dropdown_second_heading">Beauty supplements</li>
+                  <li class="dropdown_second_heading">Pre & Probiotics</li>
+                  <li class="dropdown_second_heading">Glucosamine</li>
+                  <li class="dropdown_second_heading">Collagen</li>
+                  <li class="dropdown_second_heading">Antioxidants</li>
+                  <li class="dropdown_second_heading">Biotin</li>
+              </ul>
+              <ul class="dropdown_first_heading" style="list-style-type:none">
+                  Weight Management
+                  <li class="dropdown_second_heading">Weight Management Herbs</li>
+              </ul>
+          </div>
+      </div>
+      <div class="drop_down">Diabetes <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          <div class="drop_down_content">
+          <ul class="dropdown_first_heading" style="list-style-type:none">Device 
+              <li class="dropdown_second_heading">Blood Glucose Monitor</li>
+              <li class="dropdown_second_heading">Test Strip & Lancets</li>
+              <li class="dropdown_second_heading">Syringes & Pens</li>
+          </ul>
+          <ul class="dropdown_first_heading" style="list-style-type:none">Diabetic Medicines 
+              <li class="dropdown_second_heading">Vitamins, Minerals & Antioxidants</li>
+              <li class="dropdown_second_heading">Homeopathy Medicines</li>
+              <li class="dropdown_second_heading">Ayurvedic Medicines</li>
+          </ul>
+          <ul class="dropdown_first_heading" style="list-style-type:none">Sugar Substitutes</ul>
+          <ul class="dropdown_first_heading" style="list-style-type:none">Diabetic Diet 
+              <li class="dropdown_second_heading">Juices & vinegars</li>
+              <li class="dropdown_second_heading">SuperFoods</li>
+          </ul>
+          <ul class="dropdown_first_heading" style="list-style-type:none">Diabetic Foot Health</ul>
+          </div>
+      </div>
+      <div class="drop_down">Healthcare Device <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        <div class="drop_down_content">
+          <ul class="dropdown_first_heading" style="list-style-type:none">BP Monitors</ul>
+          <ul class="dropdown_first_heading" style="list-style-type:none">Nebulizers & Vaporizers</ul>
+          <ul class="dropdown_first_heading" style="list-style-type:none">Masks (N95, Surgical & More)</ul>
+        </div>
+      </div>
+      <div class="drop_down">Personal Care <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></div>
+      <div class="drop_down">Health Condition <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></div>
+      <div class="drop_down">Ayurveda Products <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></div>
+      <div class="drop_down">Homeopathy <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg></div>
+    </div>
+  `;
+  modified = modified.replace(/<div class="smallRegular">\s*<ul class="CategoryTree__container__knOPr">[\s\S]*?<\/ul>\s*<\/div>/g, categoryDropdownHtml);
+
   // Inject opacity override styles specifically to bypass animation opacity 0 and pre-hydration hidden states
   const overrideStyles = `
   <style>
@@ -586,6 +717,123 @@ function modifyHtml(html, url) {
     [class*="PrimaryButton__coralOutlined__"] {
       color: #1b9c54 !important;
       border-color: #1b9c54 !important;
+    }
+
+    /* Categories Dropdown Tab styling */
+    .header_third_row {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 24px;
+      padding: 10px 62px;
+      background-color: #ffffff;
+      border-bottom: 1.5px solid #dde2eb;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 700;
+      color: #1e293b;
+      position: relative;
+      user-select: none;
+      z-index: 99;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.03);
+    }
+    @media (max-width: 1024px) {
+      .header_third_row {
+        display: none !important;
+      }
+    }
+    
+    .drop_down {
+      position: relative;
+      cursor: pointer;
+      padding: 6px 0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: color 0.2s ease;
+      color: #475569;
+    }
+    
+    .drop_down:hover {
+      color: #1b9c54;
+    }
+    
+    .drop_down svg {
+      transition: transform 0.2s ease;
+    }
+    
+    .drop_down:hover svg {
+      transform: rotate(180deg);
+    }
+    
+    .drop_down_content {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      background-color: #ffffff;
+      min-width: 240px;
+      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1);
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 18px;
+      z-index: 100;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(10px);
+      transition: opacity 0.2s ease, visibility 0.2s ease, transform 0.2s ease;
+    }
+    
+    .drop_down:hover .drop_down_content {
+      display: block;
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+    
+    /* Layouts for wider multi-column dropdowns */
+    .drop_down:nth-child(5) .drop_down_content {
+      min-width: 580px;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+    .drop_down:nth-child(3) .drop_down_content,
+    .drop_down:nth-child(6) .drop_down_content {
+      min-width: 480px;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+    
+    .drop_down:nth-child(3):hover .drop_down_content,
+    .drop_down:nth-child(5):hover .drop_down_content,
+    .drop_down:nth-child(6):hover .drop_down_content {
+      display: grid;
+    }
+    
+    .dropdown_first_heading {
+      margin: 0;
+      padding: 0 0 6px 0;
+      font-size: 13px;
+      font-weight: 700;
+      color: #0f172a;
+      border-bottom: 1.5px solid #f1f5f9;
+      margin-bottom: 8px;
+      list-style: none;
+    }
+    
+    .dropdown_second_heading {
+      font-size: 12px;
+      font-weight: 500;
+      color: #64748b;
+      padding: 5px 0;
+      transition: all 0.2s ease;
+      list-style: none;
+    }
+    
+    .dropdown_second_heading:hover {
+      color: #1b9c54;
+      padding-left: 4px;
+      cursor: pointer;
     }
   </style>
   `;

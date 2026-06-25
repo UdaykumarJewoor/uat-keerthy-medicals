@@ -9927,6 +9927,28 @@
   </style>
   
 
+  
+  
+
+  <style>
+    /* Override hidden/opacity-0 states from unhydrated React widgets */
+    [style*="opacity:0"],
+    [style*="opacity: 0"],
+    [style*="opacity:0;"],
+    [style*="opacity: 0;"],
+    .opacity-none,
+    .opacity-0,
+    .flash-style,
+    [class*="flash-style"],
+    [class*="FlashStyle"] {
+      opacity: 1 !important;
+      transform: none !important;
+      visibility: visible !important;
+      transition: none !important;
+    }
+  </style>
+  
+
   <style>
     /* Force our logo on the main header logo elements */
     [class*="Header__logo__"],
@@ -9975,6 +9997,123 @@
     [class*="PrimaryButton__coralOutlined__"] {
       color: #1b9c54 !important;
       border-color: #1b9c54 !important;
+    }
+
+    /* Categories Dropdown Tab styling */
+    .header_third_row {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      gap: 24px;
+      padding: 10px 62px;
+      background-color: #ffffff;
+      border-bottom: 1.5px solid #dde2eb;
+      font-family: inherit;
+      font-size: 13px;
+      font-weight: 700;
+      color: #1e293b;
+      position: relative;
+      user-select: none;
+      z-index: 99;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.03);
+    }
+    @media (max-width: 1024px) {
+      .header_third_row {
+        display: none !important;
+      }
+    }
+    
+    .drop_down {
+      position: relative;
+      cursor: pointer;
+      padding: 6px 0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: color 0.2s ease;
+      color: #475569;
+    }
+    
+    .drop_down:hover {
+      color: #1b9c54;
+    }
+    
+    .drop_down svg {
+      transition: transform 0.2s ease;
+    }
+    
+    .drop_down:hover svg {
+      transform: rotate(180deg);
+    }
+    
+    .drop_down_content {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      background-color: #ffffff;
+      min-width: 240px;
+      box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1);
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 18px;
+      z-index: 100;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(10px);
+      transition: opacity 0.2s ease, visibility 0.2s ease, transform 0.2s ease;
+    }
+    
+    .drop_down:hover .drop_down_content {
+      display: block;
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+    
+    /* Layouts for wider multi-column dropdowns */
+    .drop_down:nth-child(5) .drop_down_content {
+      min-width: 580px;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+    .drop_down:nth-child(3) .drop_down_content,
+    .drop_down:nth-child(6) .drop_down_content {
+      min-width: 480px;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+    
+    .drop_down:nth-child(3):hover .drop_down_content,
+    .drop_down:nth-child(5):hover .drop_down_content,
+    .drop_down:nth-child(6):hover .drop_down_content {
+      display: grid;
+    }
+    
+    .dropdown_first_heading {
+      margin: 0;
+      padding: 0 0 6px 0;
+      font-size: 13px;
+      font-weight: 700;
+      color: #0f172a;
+      border-bottom: 1.5px solid #f1f5f9;
+      margin-bottom: 8px;
+      list-style: none;
+    }
+    
+    .dropdown_second_heading {
+      font-size: 12px;
+      font-weight: 500;
+      color: #64748b;
+      padding: 5px 0;
+      transition: all 0.2s ease;
+      list-style: none;
+    }
+    
+    .dropdown_second_heading:hover {
+      color: #1b9c54;
+      padding-left: 4px;
+      cursor: pointer;
     }
   </style>
   
@@ -20904,9 +21043,9 @@
 
     /*# sourceMappingURL=app.28a748b414bf1af4ac60.css.map*/
   </style>
-  <script id="__LOADABLE_REQUIRED_CHUNKS__" type="text/blocked" type="application/json"
+  <script id="__LOADABLE_REQUIRED_CHUNKS__" type="text/blocked" type="text/blocked" type="application/json"
     fetchpriority="low">[6790,1449,1578,6637,2038,457,9885,3285,1051,8248]</script>
-  <script id="__LOADABLE_REQUIRED_CHUNKS___ext" type="text/blocked" type="application/json"
+  <script id="__LOADABLE_REQUIRED_CHUNKS___ext" type="text/blocked" type="text/blocked" type="application/json"
     fetchpriority="low">{"namedChunks":["pages-Corporate-CorporateHomePage","pages-Corporate-CorporateHomePage-CorporateBusinessPage"]}</script>
   <script type="text/blocked" async data-chunk="app"
     src="/assets_proxy/pwa-app/production/dweb/2.0.3/static/runtime.906ae7a8929cfd2fba87.js"
@@ -20975,6 +21114,10 @@
     crossorigin="anonymous"></script>
         
 
+  
+  
+  
+  
   <script>
     (function() {
       // Initialize debug overlay
