@@ -376,6 +376,28 @@
   </style>
   
 
+  
+  
+
+  <style>
+    /* Override hidden/opacity-0 states from unhydrated React widgets */
+    [style*="opacity:0"],
+    [style*="opacity: 0"],
+    [style*="opacity:0;"],
+    [style*="opacity: 0;"],
+    .opacity-none,
+    .opacity-0,
+    .flash-style,
+    [class*="flash-style"],
+    [class*="FlashStyle"] {
+      opacity: 1 !important;
+      transform: none !important;
+      visibility: visible !important;
+      transition: none !important;
+    }
+  </style>
+  
+
   <style>
     /* Force our logo on the main header logo elements */
     [class*="Header__logo__"],
@@ -584,6 +606,12 @@
     <p>&copy; 2026 Keerthy Medical Stores Clone. Powered by Tata 1mg APIs.</p>
   </footer>
 
+
+  
+  
+
+  
+  
 
   
   

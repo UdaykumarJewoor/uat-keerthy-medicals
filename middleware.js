@@ -347,7 +347,7 @@ function modifyHtml(html, urlStr, origin) {
               if (!document.getElementById('km-global-dropdown-style')) {
                 const style = document.createElement('style');
                 style.id = 'km-global-dropdown-style';
-                style.textContent = `
+                style.textContent = \`
                   .km-profile-container { position: relative; display: flex; align-items: center; }
                   .km-profile-trigger { display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 6px 12px; border-radius: 8px; transition: background-color 0.2s ease; user-select: none; }
                   .km-profile-trigger:hover { background-color: #f1f5f9; }
@@ -360,11 +360,11 @@ function modifyHtml(html, urlStr, origin) {
                   .km-dropdown-item:hover { background-color: #f8fafc; color: #1b9c54; }
                   .km-dropdown-item-logout { border-top: 1px solid #f1f5f9; color: #ef4444; }
                   .km-dropdown-item-logout:hover { background-color: #fef2f2; color: #dc2626; }
-                `;
+                \`;
                 document.head.appendChild(style);
               }
               
-              targetParent.innerHTML = `
+              targetParent.innerHTML = \`
                 <div class="km-profile-container" id="kmProfileContainer">
                   <div class="km-profile-trigger" id="kmProfileTrigger">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1b9c54" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
@@ -374,7 +374,7 @@ function modifyHtml(html, urlStr, origin) {
                   <div class="km-profile-dropdown" id="kmProfileDropdown">
                     <div class="km-dropdown-header">
                       <div class="km-dropdown-user-name">Udaykumar Jewoor</div>
-                      <div class="km-dropdown-user-phone">+91 \${phone.slice(0,5)} \${phone.slice(5)}</div>
+                      <div class="km-dropdown-user-phone">+91 \\\${phone.slice(0,5)} \\\${phone.slice(5)}</div>
                     </div>
                     <a href="/orders" class="km-dropdown-item">
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
@@ -394,7 +394,7 @@ function modifyHtml(html, urlStr, origin) {
                     </div>
                   </div>
                 </div>
-              `;
+              \`;
               
               // Wire up logout button
               document.getElementById('kmLogoutBtn').addEventListener('click', () => {
