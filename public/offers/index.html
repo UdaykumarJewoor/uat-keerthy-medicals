@@ -403,6 +403,28 @@
   </style>
   
 
+  
+  
+
+  <style>
+    /* Override hidden/opacity-0 states from unhydrated React widgets */
+    [style*="opacity:0"],
+    [style*="opacity: 0"],
+    [style*="opacity:0;"],
+    [style*="opacity: 0;"],
+    .opacity-none,
+    .opacity-0,
+    .flash-style,
+    [class*="flash-style"],
+    [class*="FlashStyle"] {
+      opacity: 1 !important;
+      transform: none !important;
+      visibility: visible !important;
+      transition: none !important;
+    }
+  </style>
+  
+
   <style>
     /* Force our logo on the main header logo elements */
     [class*="Header__logo__"],
@@ -576,10 +598,53 @@
   
   
 
+  
+  
+
+  
+  
+
   <script>
     (function() {
+      // Initialize debug overlay
+      try {
+        const trigger = document.createElement('div');
+        trigger.id = 'km-debug-trigger';
+        trigger.style.cssText = 'position:fixed;bottom:10px;right:10px;background:#1b9c54;color:#ffffff;font-family:sans-serif;font-size:11px;font-weight:bold;padding:6px 12px;z-index:99999;border-radius:20px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.3);user-select:none;';
+        trigger.textContent = 'KM Hydration Log';
+        
+        const overlay = document.createElement('div');
+        overlay.id = 'km-debug-overlay';
+        overlay.style.cssText = 'position:fixed;bottom:45px;right:10px;background:rgba(15,23,42,0.95);color:#00ff00;font-family:monospace;font-size:11px;padding:12px;z-index:99999;border-radius:8px;width:300px;max-height:300px;overflow-y:auto;box-shadow:0 10px 25px rgba(0,0,0,0.5);border:1px solid #1b9c54;display:none;line-height:1.4;';
+        overlay.innerHTML = \`<div style="font-weight:bold;color:#1b9c54;border-bottom:1px solid #334155;padding-bottom:6px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;"><span>KM Hydration Log</span><span style="color:#ef4444;cursor:pointer;padding:0 4px;" id="km-debug-close">[X]</span></div><div id="km-debug-logs"></div>\`;
+        
+        document.body.appendChild(trigger);
+        document.body.appendChild(overlay);
+        
+        trigger.addEventListener('click', () => {
+          overlay.style.display = overlay.style.display === 'none' ? 'block' : 'none';
+        });
+        
+        document.getElementById('km-debug-close').addEventListener('click', (e) => {
+          e.stopPropagation();
+          overlay.style.display = 'none';
+        });
+      } catch(e){}
+
+      function debugLog(msg) {
+        console.log('[KM] ' + msg);
+        try {
+          const logs = document.getElementById('km-debug-logs');
+          if (logs) {
+            logs.innerHTML += '<div>' + msg + '</div>';
+            logs.scrollTop = logs.scrollHeight;
+          }
+        } catch(e){}
+      }
+
       // 1. Recursive Image Hydration
       function hydrateImages() {
+        debugLog('hydrateImages() started');
         try {
           const urlMap = {};
           const textMap = {};
@@ -615,7 +680,7 @@
                 if (val && typeof val === 'string') {
                   urlMap[val] = imgUrl;
                   // Add clean segments for partial matching
-                  let clean = val.replace(//$/, '');
+                  let clean = val.replace(/\\/$/, '');
                   urlMap[clean] = imgUrl;
                   const parts = clean.split('/');
                   if (parts.length > 0) {
@@ -653,28 +718,46 @@
             }
           }
 
-          if (window.__INITIAL_STATE__) scanObject(window.__INITIAL_STATE__);
-          if (window.__ROUTER_INITIAL_DATA__) scanObject(window.__ROUTER_INITIAL_DATA__);
+          if (window.__INITIAL_STATE__) {
+            debugLog('__INITIAL_STATE__ found');
+            scanObject(window.__INITIAL_STATE__);
+          } else {
+            debugLog('__INITIAL_STATE__ missing');
+          }
+          if (window.__ROUTER_INITIAL_DATA__) {
+            debugLog('__ROUTER_INITIAL_DATA__ found');
+            scanObject(window.__ROUTER_INITIAL_DATA__);
+          }
+
+          debugLog('urlMap size: ' + Object.keys(urlMap).length + ', textMap size: ' + Object.keys(textMap).length);
 
           // Scan all images on the page
           const imgs = document.querySelectorAll('img');
-          imgs.forEach(img => {
+          debugLog('Scanning ' + imgs.length + ' img elements');
+          
+          let placeholders = 0;
+          let matched = 0;
+          
+          imgs.forEach((img, idx) => {
             // Only hydrate if the image is a placeholder or not loaded
             const src = img.getAttribute('src') || '';
             const isPlaceholder = src.startsWith('data:image/') || src === '' || src.includes('transparentImage') || /[lL]oader|[sS]himmer|transparent|loading/.test(img.className) || /[lL]oader|[sS]himmer|transparent|loading/.test(img.getAttribute('class') || '');
             
             if (isPlaceholder) {
+              placeholders++;
               let foundUrl = null;
+              let matchType = '';
               
               // 1. Try matching by parent anchor href
               const anchor = img.closest('a');
               if (anchor) {
                 const href = anchor.getAttribute('href');
                 if (href) {
-                  let cleanHref = href.replace(//$/, '');
+                  let cleanHref = href.replace(/\\/$/, '');
                   const pathSegments = cleanHref.split('/');
                   const lastSegment = pathSegments[pathSegments.length - 1];
                   foundUrl = urlMap[href] || urlMap[cleanHref] || urlMap[lastSegment];
+                  if (foundUrl) matchType = 'href (' + href + ')';
                 }
               }
               
@@ -683,6 +766,7 @@
                 const alt = img.getAttribute('alt');
                 if (alt) {
                   foundUrl = textMap[alt.trim().toLowerCase()];
+                  if (foundUrl) matchType = 'alt (' + alt + ')';
                 }
               }
               
@@ -691,6 +775,7 @@
                 const title = img.getAttribute('title');
                 if (title) {
                   foundUrl = textMap[title.trim().toLowerCase()];
+                  if (foundUrl) matchType = 'title (' + title + ')';
                 }
               }
               
@@ -703,6 +788,7 @@
                     const txt = el.textContent ? el.textContent.trim().toLowerCase() : '';
                     if (txt && textMap[txt]) {
                       foundUrl = textMap[txt];
+                      matchType = 'sibling text (' + txt + ')';
                       break;
                     }
                   }
@@ -711,22 +797,42 @@
               
               // Hydrate the image if a URL was found!
               if (foundUrl) {
+                matched++;
                 img.src = foundUrl;
-                // Remove loading/placeholder classes
-                for (let c of [...img.classList]) {
-                  if (c.includes('img-loading') || c.includes('transparentImage') || c.includes('Loader') || c.includes('ImageLoader') || c.includes('shimmer')) {
-                    img.classList.remove(c);
+                
+                // Set inline styles to force visibility and display
+                img.style.setProperty('opacity', '1', 'important');
+                img.style.setProperty('visibility', 'visible', 'important');
+                img.style.setProperty('display', 'block', 'important');
+                img.style.setProperty('content', 'initial', 'important');
+                
+                // Add load event listener to verify success
+                img.addEventListener('load', () => {
+                  // Remove loading classes after successful load
+                  for (let c of [...img.classList]) {
+                    if (c.includes('img-loading') || c.includes('transparentImage') || c.includes('Loader') || c.includes('ImageLoader') || c.includes('shimmer')) {
+                      img.classList.remove(c);
+                    }
                   }
+                });
+                
+                img.addEventListener('error', (err) => {
+                  debugLog('FAILED to load matched image: ' + foundUrl);
+                });
+              } else {
+                if (placeholders <= 15) {
+                  const titleStr = img.getAttribute('title') || '';
+                  const altStr = img.getAttribute('alt') || '';
+                  const anchorHref = anchor ? anchor.getAttribute('href') : '';
+                  debugLog('Unmatched placeholder #' + placeholders + ' - title="' + titleStr + '", alt="' + altStr + '", href="' + anchorHref + '"');
                 }
-                img.style.opacity = '1';
-                img.style.visibility = 'visible';
-                img.style.display = 'block';
-                img.style.content = 'initial';
               }
             }
           });
+          
+          debugLog('Placeholders: ' + placeholders + ', Matched: ' + matched);
         } catch (e) {
-          console.error('[Image Hydrator] Error:', e);
+          debugLog('ERROR: ' + e.message);
         }
       }
 

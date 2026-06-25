@@ -91,33 +91,40 @@ function scanObject(obj) {
 
 scanObject(state);
 
-console.log('urlMap size:', Object.keys(urlMap).length);
-console.log('textMap size:', Object.keys(textMap).length);
-
-console.log('Is "/categories/health-conditions/kidney-care-40" in urlMap?', !!urlMap["/categories/health-conditions/kidney-care-40"]);
-console.log('Value in urlMap:', urlMap["/categories/health-conditions/kidney-care-40"]);
-console.log('Is "kidney-care-40" in urlMap?', !!urlMap["kidney-care-40"]);
-
-// Let's parse the HTML using simple regex to find category anchors and their images
-const anchorRegex = /<a[^>]*href="([^"]*)"[^>]*>([\s\S]*?)<\/a>/g;
+// Scan all images in the HTML using regex
+console.log('\n--- Scanning All Img Elements in HTML ---');
+const imgRegex = /<img([^>]*)\/?>/g;
 let match;
-console.log('\n--- Scanning Category Anchors in HTML ---');
-while ((match = anchorRegex.exec(content)) !== null) {
-  const href = match[1];
-  const innerHTML = match[2];
-  if (href.includes('categories/')) {
-    // Look for image inside
-    const imgMatch = innerHTML.match(/<img[^>]*src="([^"]*)"[^>]*>/);
-    if (imgMatch) {
-      const imgPlaceholder = imgMatch[1];
-      let cleanHref = href.replace(/\/$/, '');
-      const pathSegments = cleanHref.split('/');
-      const lastSegment = pathSegments[pathSegments.length - 1];
-      const foundUrl = urlMap[href] || urlMap[cleanHref] || urlMap[lastSegment];
-      
-      console.log(`Href: ${href}`);
-      console.log(`  Img Placeholder: ${imgPlaceholder.slice(0, 50)}...`);
-      console.log(`  Found Hydrated URL: ${foundUrl}`);
+while ((match = imgRegex.exec(content)) !== null) {
+  const attrs = match[1];
+  
+  // Extract src, class, alt, title
+  const srcMatch = attrs.match(/src="([^"]*)"/);
+  const classMatch = attrs.match(/class="([^"]*)"/);
+  const altMatch = attrs.match(/alt="([^"]*)"/);
+  const titleMatch = attrs.match(/title="([^"]*)"/);
+  
+  const src = srcMatch ? srcMatch[1] : '';
+  const className = classMatch ? classMatch[1] : '';
+  const alt = altMatch ? altMatch[1] : '';
+  const title = titleMatch ? titleMatch[1] : '';
+  
+  const isPlaceholder = src.startsWith('data:image/') || src === '' || src.includes('transparentImage') || /[lL]oader|[sS]himmer|transparent|loading/.test(className);
+  
+  if (isPlaceholder && (title || alt)) {
+    let foundUrl = null;
+    
+    // Match by title
+    if (title) {
+      foundUrl = textMap[title.trim().toLowerCase()];
     }
+    // Match by alt
+    if (!foundUrl && alt) {
+      foundUrl = textMap[alt.trim().toLowerCase()];
+    }
+    
+    console.log(`Image (title="${title}", alt="${alt}")`);
+    console.log(`  Placeholder src: ${src.slice(0, 50)}`);
+    console.log(`  Found Hydrated URL: ${foundUrl}`);
   }
 }
